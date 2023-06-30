@@ -26,6 +26,7 @@ yarn-error.log*
 
 # local env files
 .env*.local
+/api/gl_config.json
 
 # vercel
 .vercel
