@@ -22,6 +22,8 @@ class Detector(pydantic.BaseModel):
 class DetectorList(pydantic.BaseModel):
     detectors: list[Detector]
 
+app = FastAPI()
+
 print("Loading config...")
 with open("./api/gl_config.json", "r") as f:
     config = json.load(f)
@@ -29,15 +31,14 @@ detectors = config["detectors"] if "detectors" in config else []
 api_key = config["api_key"] if "api_key" in config else None
 endpoint = config["endpoint"] if "endpoint" in config else None
 print(detectors)
-DETECTOR_PROCESSES = [multiprocessing.Process(target=run_process, args=(
+app.DETECTOR_PROCESSES = [multiprocessing.Process(target=run_process, args=(
     GLDetector(d["id"], d["config"]["vid_src"], d["config"]["trigger_type"], d["config"]["cycle_time"], d["config"]["pin"], d["config"]["pin_active_state"]),
     api_key,
     endpoint,
 )) for d in detectors]
-for p in DETECTOR_PROCESSES:
+for p in app.DETECTOR_PROCESSES:
     p.start()
 
-app = FastAPI()
 
 @app.get("/api/config")
 def get_config():
@@ -77,18 +78,22 @@ async def post_detectors(detectors: DetectorList):
         config = json.load(f)
     config["detectors"] = json.loads(detectors.json())["detectors"]
     endpoint = config["endpoint"] if "endpoint" in config else None
+    api_key = config["api_key"] if "api_key" in config else None
 
     # stop all processes
-    # for p in DETECTOR_PROCESSES:
-    #     p.terminate()
+    for p in app.DETECTOR_PROCESSES:
+        p.terminate()
     
     # # start new processes
-    # # TODO: pass in default gl
-    # DETECTOR_PROCESSES = [multiprocessing.Process(target=run_process, args=(
-    #     GLDetector(d["id"], d["config"]["vid_src"], d["config"]["trigger_type"], d["config"]["cycle_time"], d["config"]["pin"], d["config"]["pin_active_state"]),
-    # )) for d in config["detectors"]]
-    # for p in DETECTOR_PROCESSES:
-    #     p.start()
+    print("Loading config...")
+    print(detectors)
+    app.DETECTOR_PROCESSES = [multiprocessing.Process(target=run_process, args=(
+        GLDetector(d.id, d.config.vid_src, d.config.trigger_type, d.config.cycle_time, d.config.pin, d.config.pin_active_state),
+        api_key,
+        endpoint,
+    )) for d in detectors.detectors]
+    for p in app.DETECTOR_PROCESSES:
+        p.start()
 
     # save config
     with open("./api/gl_config.json", "w") as f:
