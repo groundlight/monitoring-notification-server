@@ -17,8 +17,8 @@ export default function Home() {
   useEffect(() => {
     // fetch detector configs
     fetch("/api/config").then((res) => res.json()).then((data) => {
-      setApiKeyTemp((data.api_key as string).substring(0, 15) + "...");
-      setApiKey(data.api_key as string);
+      setApiKeyTemp((data.api_key ? data.api_key as string : "").substring(0, 15) + "...");
+      setApiKey(data.api_key ? data.api_key as string : "");
       setDetectors(data.detectors as DetType[]);
     });
 
@@ -81,7 +81,7 @@ export default function Home() {
         </button>
       </div>
       <div className="flex flex-col items-center gap-2">
-        {detectors.map((detector, index) => (
+        {detectors && detectors.map((detector, index) => (
           <div className="flex flex-col items-center" key={index}>
             <DetectorCard detector={detector} index={index} onclick={() => {
               setEditOverlayIndex(index);
