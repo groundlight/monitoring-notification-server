@@ -55,7 +55,7 @@ def get_image_sources() -> List[int]:
         index += 1
     return arr
 
-def run_process(detector: Detector):
+def run_process(detector: Detector, api_key: str, endpoint: str):
     # TODO: figure out if opencv uses a buffer, and how to mess with it
     print("Starting process...")
 
@@ -77,7 +77,9 @@ def run_process(detector: Detector):
     else:
         raise ValueError(f"Invalid trigger type: {trigger_type}")
     
-    gl = groundlight.Groundlight()
+    # if "endpoint" in detector and detector.endpoint is not None:
+    #     endpoint = detector.endpoint
+    gl = groundlight.Groundlight(api_token=api_key, endpoint=endpoint)
     det = gl.get_detector(detector.id)
 
     print(f"Starting detector {detector.id}...")

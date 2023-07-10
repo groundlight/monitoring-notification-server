@@ -56,6 +56,19 @@ export default function Home() {
     });
   }
 
+  const makeNewDetector = (detector: DetType) => {
+    // make new detector
+    fetch("/api/new-detector", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        detector: detector,
+      }),
+    });
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center p-24 gap-2">
       <h1 className="text-4xl font-bold">Detector Configs</h1>
@@ -97,6 +110,9 @@ export default function Home() {
       </button>
       { detectors.length > 0 && showEditOverlay &&
         <EditDetectorOverlay detector={detectors[editOverlayIndex]} detectors={availableDetectors} index={0} onSave={(e) => {
+          if (e.isNewDetector) {
+            makeNewDetector(e.detector);
+          }
           setShowEditOverlay(false);
           let detectors_copy = [...detectors];
           detectors_copy[editOverlayIndex] = e.detector;

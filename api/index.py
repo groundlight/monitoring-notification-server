@@ -26,9 +26,13 @@ print("Loading config...")
 with open("./api/gl_config.json", "r") as f:
     config = json.load(f)
 detectors = config["detectors"] if "detectors" in config else []
+api_key = config["api_key"] if "api_key" in config else None
+endpoint = config["endpoint"] if "endpoint" in config else None
 print(detectors)
 DETECTOR_PROCESSES = [multiprocessing.Process(target=run_process, args=(
     GLDetector(d["id"], d["config"]["vid_src"], d["config"]["trigger_type"], d["config"]["cycle_time"], d["config"]["pin"], d["config"]["pin_active_state"]),
+    api_key,
+    endpoint,
 )) for d in detectors]
 for p in DETECTOR_PROCESSES:
     p.start()
@@ -52,12 +56,27 @@ def get_detectors():
         return [json.loads(d.json()) for d in gl.list_detectors().results]
     except:
         return []
+    
+@app.post("/api/new-detector")
+def make_new_detector(detector: Detector):
+    with open("./api/gl_config.json", "r") as f:
+            config = json.load(f)
+    api_key = config["api_key"] if "api_key" in config else None
+    endpoint = config["endpoint"] if "endpoint" in config else None
+    # TODO: use this as default gl
+    gl = groundlight.Groundlight(api_token=api_key, endpoint=endpoint)
+    try:
+        gl.create_detector(detector.name, detector.query)
+        return "Success"
+    except:
+        return "Failed"
 
 @app.post("/api/config/detectors")
 async def post_detectors(detectors: DetectorList):
     with open("./api/gl_config.json", "r") as f:
         config = json.load(f)
     config["detectors"] = json.loads(detectors.json())["detectors"]
+    endpoint = config["endpoint"] if "endpoint" in config else None
 
     # stop all processes
     # for p in DETECTOR_PROCESSES:
