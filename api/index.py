@@ -60,16 +60,15 @@ def get_detectors():
     
 @app.post("/api/new-detector")
 def make_new_detector(detector: Detector):
-    print(detector)
     with open("./api/gl_config.json", "r") as f:
-            config = json.load(f)
+        config = json.load(f)
     api_key = config["api_key"] if "api_key" in config else None
     endpoint = config["endpoint"] if "endpoint" in config else None
     # TODO: use this as default gl
     gl = groundlight.Groundlight(api_token=api_key, endpoint=endpoint)
     try:
-        gl.create_detector(detector.name, detector.query)
-        return "Success"
+        det = gl.create_detector(detector.name, detector.query)
+        return det.id
     except:
         return "Failed"
 

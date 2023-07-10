@@ -24,7 +24,6 @@ export default function Home() {
 
     // fetch available detectors
     fetch("/api/detectors").then((res) => res.json()).then((data) => {
-      console.log(data);
       setAvailableDetectors(data as DetBaseType[]);
     });
   }, []);
@@ -57,17 +56,17 @@ export default function Home() {
     });
   }
 
-  const makeNewDetector = (detector: DetType) => {
+  const makeNewDetector = async (detector: DetType) => {
     // make new detector
-    fetch("/api/new-detector", {
+    const res = await fetch("/api/new-detector", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        detector: detector,
-      }),
-    });
+      body: JSON.stringify(detector),
+    }).then((res) => res.json());
+    // console.log(await res);
+    return res;
   }
 
   return (
@@ -110,9 +109,11 @@ export default function Home() {
         Add Detector
       </button>
       { detectors.length > 0 && showEditOverlay &&
-        <EditDetectorOverlay detector={detectors[editOverlayIndex]} detectors={availableDetectors} index={0} onSave={(e) => {
+        <EditDetectorOverlay detector={detectors[editOverlayIndex]} detectors={availableDetectors} index={0} onSave={ async (e) => {
           if (e.isNewDetector) {
-            makeNewDetector(e.detector);
+            const id = await makeNewDetector(e.detector);
+            if (id === "Failed") return;
+            e.detector.id = id;
           }
           setShowEditOverlay(false);
           let detectors_copy = [...detectors];
