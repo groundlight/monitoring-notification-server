@@ -48,7 +48,7 @@ def get_config():
 @app.get("/api/detectors")
 def get_detectors():
     with open("./api/gl_config.json", "r") as f:
-            config = json.load(f)
+        config = json.load(f)
     api_key = config["api_key"] if "api_key" in config else None
     endpoint = config["endpoint"] if "endpoint" in config else None
     # TODO: use this as default gl
@@ -60,6 +60,7 @@ def get_detectors():
     
 @app.post("/api/new-detector")
 def make_new_detector(detector: Detector):
+    print(detector)
     with open("./api/gl_config.json", "r") as f:
             config = json.load(f)
     api_key = config["api_key"] if "api_key" in config else None

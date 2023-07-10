@@ -24,6 +24,7 @@ export default function Home() {
 
     // fetch available detectors
     fetch("/api/detectors").then((res) => res.json()).then((data) => {
+      console.log(data);
       setAvailableDetectors(data as DetBaseType[]);
     });
   }, []);
