@@ -14,9 +14,8 @@ WORKDIR /opt/app
 COPY . .
 # copy all modules from build_image
 COPY --from=deps /opt/app/node_modules ./node_modules
-RUN cat .env \
-     && npm run build \
-     && npm prune --omit dev --omit optional --force
+RUN npm run build \
+    && npm prune --omit dev --omit optional --force
 
 # ------------- image ----------------
 # Production image
