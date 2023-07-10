@@ -65,7 +65,6 @@ export default function Home() {
       },
       body: JSON.stringify(detector),
     }).then((res) => res.json());
-    // console.log(await res);
     return res;
   }
 

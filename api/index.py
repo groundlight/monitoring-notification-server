@@ -111,35 +111,3 @@ def post_api_key(key: ApiKey):
     with open("./api/gl_config.json", "w") as f:
         json.dump(config, f, indent=4)
     return config
-
-# def __del__():
-#     print("Stopping processes...")
-#     [p.terminate() for p in DETECTOR_PROCESSES]
-
-"""
-{
-    "api_key": "api_keyKEYkeyKEYkeyKEYkeyKEYkeyKEYkey",
-    "detectors": [
-        {
-            "id": "det_1",
-            "name": "Detector 1",
-            "query": "Is there a car in the driveway?",
-            "config": {
-                "vid_src": 0,
-                "trigger_type": "time",
-                "cycle_time": 60
-            }
-        },
-        {
-            "id": "det_2",
-            "name": "Detector 2",
-            "query": "Is there a person in the image?",
-            "config": {
-                "vid_src": 1,
-                "trigger_type": "time",
-                "cycle_time": 30
-            }
-        }
-    ]
-}
-"""
