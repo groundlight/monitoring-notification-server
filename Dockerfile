@@ -14,7 +14,4 @@ RUN apt-get install -y libxrender-dev
 
 COPY . .
 
-RUN touch ./api/gl_config.json
-# RUN apk add --update nodejs npm
-
 CMD ["npm", "run", "dev"]

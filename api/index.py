@@ -25,20 +25,25 @@ class DetectorList(pydantic.BaseModel):
 app = FastAPI()
 
 print("Loading config...")
-with open("./api/gl_config.json", "r") as f:
-    config = json.load(f)
-detectors = config["detectors"] if "detectors" in config else []
-api_key = config["api_key"] if "api_key" in config else None
-endpoint = config["endpoint"] if "endpoint" in config else None
-print(detectors)
-app.DETECTOR_PROCESSES = [multiprocessing.Process(target=run_process, args=(
-    GLDetector(d["id"], d["config"]["vid_src"], d["config"]["trigger_type"], d["config"]["cycle_time"], d["config"]["pin"], d["config"]["pin_active_state"]),
-    api_key,
-    endpoint,
-)) for d in detectors]
-for p in app.DETECTOR_PROCESSES:
-    p.start()
-
+try:
+    with open("./api/gl_config.json", "r") as f:
+        config = json.load(f)
+    detectors = config["detectors"] if "detectors" in config else []
+    api_key = config["api_key"] if "api_key" in config else None
+    endpoint = config["endpoint"] if "endpoint" in config else None
+    print(detectors)
+    app.DETECTOR_PROCESSES = [multiprocessing.Process(target=run_process, args=(
+        GLDetector(d["id"], d["config"]["vid_src"], d["config"]["trigger_type"], d["config"]["cycle_time"], d["config"]["pin"], d["config"]["pin_active_state"]),
+        api_key,
+        endpoint,
+    )) for d in detectors]
+    for p in app.DETECTOR_PROCESSES:
+        p.start()
+except:
+    print("Failed to load config")
+    app.DETECTOR_PROCESSES = []
+    with open("./api/gl_config.json", "w") as f:
+        json.dump({}, f, indent=4)
 
 @app.get("/api/config")
 def get_config():
