@@ -19,12 +19,12 @@ export default function Home() {
     fetch("/api/config").then((res) => res.json()).then((data) => {
       setApiKeyTemp((data.api_key ? data.api_key as string : "").substring(0, 15) + "...");
       setApiKey(data.api_key ? data.api_key as string : "");
-      setDetectors(data.detectors as DetType[]);
+      setDetectors(data.detectors as DetType[] ? data.detectors as DetType[] : []);
     });
 
     // fetch available detectors
     fetch("/api/detectors").then((res) => res.json()).then((data) => {
-      setAvailableDetectors(data as DetBaseType[]);
+      setAvailableDetectors(data as DetBaseType[] ? data as DetBaseType[] : []);
     });
   }, []);
 
