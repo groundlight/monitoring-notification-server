@@ -1,6 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional, Self
-import cv2
+from typing import Optional, Self
 from enum import Enum
 import time
 import groundlight
@@ -42,27 +41,15 @@ class Detector(Trigger):
         elif trigger_type == "pin":
             self.trigger = PinTrigger(pin)
 
-def get_image_sources() -> List[int]:
-    index = 0
-    arr = []
-    while True:
-        cap = cv2.VideoCapture(index)
-        if not cap.read()[0]:
-            break
-        else:
-            arr.append(index)
-        cap.release()
-        index += 1
-    return arr
-
 def run_process(detector: Detector, api_key: str, endpoint: str):
-    # TODO: figure out if opencv uses a buffer, and how to mess with it
     print("Starting process...")
 
     trigger = detector.trigger
     vid_src = detector.vid_src
-    # vid = cv2.VideoCapture(vid_src)
-    vid = framegrab.FrameGrabber.create_grabber(stream=vid_src)
+    grabbers = framegrab.FrameGrabber.autodiscover()
+    keys  = list(grabbers.keys())
+    vid = grabbers[keys[vid_src]]
+    # vid = framegrab.grabber.FrameGrabber.create_grabber(config)
 
     trigger_type = trigger._type
 
@@ -85,13 +72,6 @@ def run_process(detector: Detector, api_key: str, endpoint: str):
     print(f"Starting detector {detector.id}...")
 
     while(True):
-        # ret, frame = vid.read()
         frame = vid.grab()
-        # cv2.imshow('frame', frame)
-        # if cv2.waitKey(1) & 0xFF == ord('q'):
-        #     break
         query = gl.submit_image_query(det, frame)
         delay()
-
-    vid.release()
-    cv2.destroyAllWindows()
