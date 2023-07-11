@@ -1,6 +1,7 @@
 import multiprocessing
 from fastapi import FastAPI
 import json
+import yaml
 import groundlight
 import pydantic
 from api.gl_process import Detector as GLDetector
@@ -49,6 +50,17 @@ except:
 def get_config():
     with open("./api/gl_config.json", "r") as f:
         return json.load(f)
+    
+@app.get("/api/config-json-pretty")
+def get_config_json_pretty():
+    with open("./api/gl_config.json", "r") as f:
+        return json.dumps(json.load(f), indent=4)
+
+@app.get("/api/config-yaml-pretty")
+def get_config_json_pretty():
+    with open("./api/gl_config.json", "r") as f:
+        # return json.dumps(json.load(f), indent=4)
+        return yaml.dump(json.load(f), indent=4)
     
 @app.get("/api/detectors")
 def get_detectors():

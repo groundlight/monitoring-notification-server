@@ -13,6 +13,8 @@ export default function Home() {
   const [availableDetectors, setAvailableDetectors] = useState<DetBaseType[]>([]);
   const [showEditOverlay, setShowEditOverlay] = useState<boolean>(false);
   const [editOverlayIndex, setEditOverlayIndex] = useState<number>(0);
+  const [jsonDataUrl, setJsonDataUrl] = useState<string>("");
+  const [yamlDataUrl, setYamlDataUrl] = useState<string>("");
 
   useEffect(() => {
     // fetch detector configs
@@ -27,6 +29,18 @@ export default function Home() {
       setAvailableDetectors(data as DetBaseType[] ? data as DetBaseType[] : []);
     });
   }, []);
+
+  useEffect(() => {
+    // update json data url
+    fetch("/api/config-json-pretty").then((res) => res.json()).then((data) => {
+      console.log(data)
+      setJsonDataUrl(`data:application/json,${encodeURIComponent(data)}`);
+    });
+    // update yaml data url
+    fetch("/api/config-yaml-pretty").then((res) => res.json()).then((data) => {
+      setYamlDataUrl(`data:application/yaml,${encodeURIComponent(data)}`);
+    });
+  }, [detectors, apiKey]);
 
 
   const saveDetectors = (detectors_to_save: DetType[]) => {
@@ -70,7 +84,17 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center p-24 gap-2">
+      <div className="flex fixed top-5 right-5 gap-5">
+        <a className="bg-blue-500 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded" href={jsonDataUrl} download="detector-configs.json" >
+          json
+        </a>
+        <a className="bg-blue-500 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded" href={yamlDataUrl} download="detector-configs.yaml" >
+          yaml
+        </a>
+      </div>
       <h1 className="text-4xl font-bold">Detector Configs</h1>
+      {/* download button */}
+      {/* <a className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" href="/api/config" download="detector-configs.json" > */}
       <div className="flex gap-2">
         <input className="border-2 border-gray-300 rounded-md p-2" type="text" placeholder="API Key" value={apiKeyTemp} onChange={(e) => setApiKeyTemp(e.target.value)} />
         <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => {
