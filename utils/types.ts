@@ -27,3 +27,14 @@ type DetBaseType = {
 	group_name: string;
 	confidence_threshold: number;
 };
+
+type CameraType = {
+	image: string;
+	config: CameraConfigType;
+};
+
+type CameraConfigType = {
+	name: string;
+	idx?: number;
+	serial_number?: string | number;
+};

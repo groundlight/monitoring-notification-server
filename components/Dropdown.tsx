@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { ArrowDownIcon, ArrowUpIcon } from "@heroicons/react/24/outline"
 
-export const Dropdown = ({ options, selected, setSelected, valid }:
-    { options: string[], selected: string, setSelected: (e: string, idx: number) => void, valid?: boolean }
+export const Dropdown = ({ options, selected, setSelected, valid, onChange }:
+    { options: any[], selected: string, setSelected: (e: string, idx: number) => void, valid?: boolean, onChange?: (open: boolean) => void }
+    // { options: string[], selected: string, setSelected: (e: string, idx: number) => void, valid?: boolean }
 ) => {
     const [open, setOpen] = useState<boolean>(false);
 
@@ -12,7 +13,10 @@ export const Dropdown = ({ options, selected, setSelected, valid }:
         <div className="relative inline-block text-left w-full place-self-center">
             <div>
                 <span className="rounded-md shadow-sm">
-                    <button type="button" className={`inline-flex justify-center w-full rounded-md border ${valid !== false ? "border-gray-300" : "border-red-500"} px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50" id="options-menu`} aria-haspopup="true" aria-expanded="true" onClick={() => setOpen(!open)}>
+                    <button type="button" className={`inline-flex justify-center w-full rounded-md border ${valid !== false ? "border-gray-300" : "border-red-500"} px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50" id="options-menu`} aria-haspopup="true" aria-expanded="true" onClick={() => {
+                        if (onChange) onChange(!open);
+                        setOpen(!open);
+                    }}>
                         {selected}
                         {
                             !open ? (
@@ -32,6 +36,7 @@ export const Dropdown = ({ options, selected, setSelected, valid }:
                             e.preventDefault();
                             setSelected(option, index);
                             setOpen(false);
+                            if (onChange) onChange(false);
                         }}>{option}</button>
                     </div>
                 ))}

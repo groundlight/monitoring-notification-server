@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Self
+from typing import List, Optional, Self
 from enum import Enum
 import time
 import groundlight
@@ -41,7 +41,7 @@ class Detector(Trigger):
         elif trigger_type == "pin":
             self.trigger = PinTrigger(pin)
 
-def run_process(detector: Detector, api_key: str, endpoint: str):
+def run_process(detector: Detector, api_key: str, endpoint: str, grabbers: List[dict]):
     print("Starting process...")
 
     trigger = detector.trigger
@@ -49,6 +49,7 @@ def run_process(detector: Detector, api_key: str, endpoint: str):
     grabbers = framegrab.FrameGrabber.autodiscover()
     keys  = list(grabbers.keys())
     vid = grabbers[keys[vid_src]]
+    # vid = grabbers[vid_src]["grabber"]
     # vid = framegrab.grabber.FrameGrabber.create_grabber(config)
 
     trigger_type = trigger._type

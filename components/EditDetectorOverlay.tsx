@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Dropdown } from "./Dropdown";
+import { CameraSetupOverlay } from "./CameraSetupOverlay";
 
-export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDelete }:
-    { detector: DetType, detectors: DetBaseType[], index: number, onSave: (e: any) => void, onDelete: (e: any) => void }
+export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDelete, cameras, cameraDropdownStatusChanged }:
+    { detector: DetType, detectors: DetBaseType[], index: number, onSave: (e: any) => void, onDelete: (e: any) => void, cameras: CameraType[], cameraDropdownStatusChanged?: (e: boolean) => void }
 ) => {
     const [newDetector, setNewDetector] = useState<boolean>(false);
     const [name, setName] = useState<string>(detector.name);
@@ -13,6 +14,7 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
     const [cycleTime, setCycleTime] = useState<number | undefined>(detector.config.cycle_time);
     const [pin, setPin] = useState<number | undefined>(detector.config.pin);
     const [pinActiveState, setPinActiveState] = useState<number | undefined>(detector.config.pin_active_state);
+    const [selectCamera, setSelectCamera] = useState<boolean>(false);
 
     const isDetectorValid = newDetector ?
         name !== "" && query !== "" && !detectors.map(d => d.name).includes(name) : id !== "" && detectors.map(d => d.name).includes(name);
@@ -57,10 +59,31 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                         </>
                 }
 
-                <div className="flex gap-2">
+                {/* <div className="flex gap-2">
                     <div className="font-bold  place-self-center">Video Source #:</div>
                     <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="number" placeholder="Video Source #" value={vidSrc} onChange={(e) => setVidSrc(parseInt(e.target.value))} min={-1} />
-                </div>
+                </div> */}
+                {/* <div className="flex gap-2">
+                    <div className="font-bold  place-self-center">Video Source #:</div>
+                    <Dropdown options={cameras.map(c =>
+                    <div>
+                        <div className="font-bold">{c.name}</div>
+                        <img src={`data:image/jpeg;base64,${c.image}`} width={640} height={480} key={index} alt={c.name} />
+                    </div>
+                    )} selected={cameras[vidSrc]?.name} setSelected={(e, idx) => setVidSrc(idx)} onChange={open => {
+                        if (cameraDropdownStatusChanged) cameraDropdownStatusChanged(open);
+                    }} />
+                </div> */}
+
+                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto" onClick={() => setSelectCamera(true)} >
+                    Select Camera
+                </button>
+
+                {
+                    selectCamera &&
+                    <CameraSetupOverlay back={() => setSelectCamera(false)} onSelect={() => {}} /> // TODO: onSelect
+                }
+
                 <div className="flex gap-2">
                     <div className="font-bold  place-self-center">Trigger Type:</div>
                     <Dropdown options={["time", "pin", "motion"]} selected={triggerType} setSelected={(e, idx) => setTriggerType(e)} />
