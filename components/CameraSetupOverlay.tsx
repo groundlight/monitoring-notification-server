@@ -4,7 +4,7 @@ import { ArrowLeftIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import { Spinner } from "./Spinner";
 
-export const CameraSetupOverlay = ({ onSelect, back }: { onSelect?: (e: CameraType) => void, back?: () => void }) => {
+export const CameraSetupOverlay = ({ onSelect, back }: { onSelect?: (cam: CameraType) => void, back?: () => void }) => {
     const [cameras, setCameras] = useState<CameraType[] | undefined>(undefined);
     const [camerasWaiting, setCamerasWaiting] = useState<boolean[]>([]); // cameras that are waiting for a response
     const [newCamera, setNewCamera] = useState<boolean>(false);

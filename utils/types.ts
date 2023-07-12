@@ -4,7 +4,10 @@ enum PinState {
 }
 
 type DetConfType = {
-	vid_src: number;
+	// vid_src: number;
+	enabled: boolean;
+	vid_config: CameraConfigType;
+	image: string;
 	trigger_type: string;
 	cycle_time?: number;
 	pin?: number;

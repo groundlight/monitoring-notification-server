@@ -1,27 +1,36 @@
 import { useState } from "react";
 import { Dropdown } from "./Dropdown";
 import { CameraSetupOverlay } from "./CameraSetupOverlay";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
-export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDelete, cameras, cameraDropdownStatusChanged }:
-    { detector: DetType, detectors: DetBaseType[], index: number, onSave: (e: any) => void, onDelete: (e: any) => void, cameras: CameraType[], cameraDropdownStatusChanged?: (e: boolean) => void }
+export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDelete, onBack }:
+    { detector: DetType, detectors: DetBaseType[], index: number, onSave: (e: { detector: DetType, isNewDetector: boolean, index: number }) => void, onDelete: (e: any) => void, onBack: () => void }
 ) => {
     const [newDetector, setNewDetector] = useState<boolean>(false);
     const [name, setName] = useState<string>(detector.name);
     const [query, setQuery] = useState<string>(detector.query);
     const [id, setId] = useState<string>(detector.id);
-    const [vidSrc, setVidSrc] = useState<number>(detector.config.vid_src);
     const [triggerType, setTriggerType] = useState<string>(detector.config.trigger_type);
     const [cycleTime, setCycleTime] = useState<number | undefined>(detector.config.cycle_time);
     const [pin, setPin] = useState<number | undefined>(detector.config.pin);
     const [pinActiveState, setPinActiveState] = useState<number | undefined>(detector.config.pin_active_state);
     const [selectCamera, setSelectCamera] = useState<boolean>(false);
+    const [vidConfig, setVidConfig] = useState<CameraConfigType>(detector.config.vid_config);
+    const [image, setImage] = useState<string>(detector.config.image);
+    const [detectorEnabled, setDetectorEnabled] = useState<boolean>(detector.config.enabled);
 
     const isDetectorValid = newDetector ?
         name !== "" && query !== "" && !detectors.map(d => d.name).includes(name) : id !== "" && detectors.map(d => d.name).includes(name);
 
+    const handleCameraSelect = (cam: CameraType) => {
+        setVidConfig(cam.config);
+        setImage(cam.image);
+        setSelectCamera(false);
+    }
+
     return (
-        <div className="flex flex-col items-center shadow-md bg-white rounded-md p-5 relative">
-            <div className="flex flex-col gap-2">
+        <div className="flex flex-col items-center shadow-md bg-white rounded-md p-5 w-[40%] fixed">
+            <div className="flex flex-col gap-2 relative">
                 {/* create new detector checkbox */}
                 <div className="flex gap-2">
                     <div className="font-bold place-self-center">Create New Detector:</div>
@@ -59,29 +68,17 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                         </>
                 }
 
-                {/* <div className="flex gap-2">
-                    <div className="font-bold  place-self-center">Video Source #:</div>
-                    <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="number" placeholder="Video Source #" value={vidSrc} onChange={(e) => setVidSrc(parseInt(e.target.value))} min={-1} />
-                </div> */}
-                {/* <div className="flex gap-2">
-                    <div className="font-bold  place-self-center">Video Source #:</div>
-                    <Dropdown options={cameras.map(c =>
-                    <div>
-                        <div className="font-bold">{c.name}</div>
-                        <img src={`data:image/jpeg;base64,${c.image}`} width={640} height={480} key={index} alt={c.name} />
-                    </div>
-                    )} selected={cameras[vidSrc]?.name} setSelected={(e, idx) => setVidSrc(idx)} onChange={open => {
-                        if (cameraDropdownStatusChanged) cameraDropdownStatusChanged(open);
-                    }} />
-                </div> */}
-
-                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto" onClick={() => setSelectCamera(true)} >
-                    Select Camera
-                </button>
+                <div className="flex gap-2">
+                    <div className="font-bold  place-self-center">Video Source:</div>
+                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto" onClick={() => setSelectCamera(true)} >
+                        Select
+                    </button>
+                </div>
+                <img src={`data:image/jpeg;base64,${image}`} width={640} height={480} alt={name} className="w-3/4 place-self-center" />
 
                 {
                     selectCamera &&
-                    <CameraSetupOverlay back={() => setSelectCamera(false)} onSelect={() => {}} /> // TODO: onSelect
+                    <CameraSetupOverlay back={() => setSelectCamera(false)} onSelect={(cam) => handleCameraSelect(cam)} /> // TODO: onSelect
                 }
 
                 <div className="flex gap-2">
@@ -108,8 +105,12 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                         </div>
                     </div>
                 }
+                <div className="flex gap-2">
+                    <div className="font-bold place-self-center">Detector Enabled:</div>
+                    <input className="border-2 border-gray-300 rounded-md p-2 w-4 ml-auto mr-2" type="checkbox" checked={detectorEnabled} onChange={(e) => setDetectorEnabled(e.target.checked)} />
+                </div>
             </div>
-            <div className="p-10"></div>
+            <div className="p-8"></div>
             <button className={`${isDetectorValid ? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500"} text-white font-bold py-2 px-4 rounded absolute bottom-2 right-2`} disabled={!isDetectorValid} onClick={() => {
                 // if (id === "") return;
                 onSave({
@@ -118,7 +119,9 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                     query,
                     id,
                     config: {
-                        vid_src: vidSrc,
+                        enabled: detectorEnabled,
+                        vid_config: vidConfig,
+                        image: image,
                         trigger_type: triggerType,
                         cycle_time: cycleTime,
                         pin,
@@ -135,6 +138,9 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                 index
             })}>
                 Delete
+            </button>
+            <button className="absolute top-0 -left-12 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" onClick={() => onBack()} >
+                <ArrowLeftIcon className="h-5 w-5" />
             </button>
         </div>
     );

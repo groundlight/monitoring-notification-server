@@ -13,7 +13,9 @@ import cv2
 import base64
 
 class Config(pydantic.BaseModel):
-    vid_src: int
+    enabled: bool
+    vid_config: dict
+    image: str
     trigger_type: str
     cycle_time: int | None
     pin: int | None
@@ -30,11 +32,34 @@ class DetectorList(pydantic.BaseModel):
 
 app = FastAPI()
 
+app.DETECTOR_PROCESSES = []
+app.DETECTOR_CONFIG = {}
+
+def start_processes(api_key, endpoint, detectors):
+    app.DETECTOR_CONFIG = {
+        "api_key": api_key,
+        "endpoint": endpoint,
+        "detectors": detectors,
+    }
+    detectors = filter(lambda d: d["config"]["enabled"], detectors)
+    app.DETECTOR_PROCESSES = [multiprocessing.Process(target=run_process, args=(
+        d,
+        api_key,
+        endpoint,
+    )) for d in detectors]
+    for p in app.DETECTOR_PROCESSES:
+        p.start()
+
 def make_grabbers():
+    try:
+        for p in app.DETECTOR_PROCESSES:
+            p.terminate()
+    except:
+        pass
+
     grabbers = framegrab.FrameGrabber.autodiscover()
     cameras = []
     for k, v in grabbers.items():
-        print(k, v)
         config = v.config
         if "input_type" in config and config["input_type"] == "webcam":
             v.config["idx"] = v.idx
@@ -46,9 +71,15 @@ def make_grabbers():
         
         cameras.append({"config": config, "image": jpg_64})
     
-    return cameras
-    # return [{"name": grabber_name, "grabber": grabber} for grabber_name, grabber in grabbers.items()]
+    try:
+        api_key = app.DETECTOR_CONFIG["api_key"]
+        endpoint = app.DETECTOR_CONFIG["endpoint"]
+        detectors = app.DETECTOR_CONFIG["detectors"]
+        start_processes(api_key, endpoint, detectors)
+    except:
+        print("Failed to start processes")
     
+    return cameras
 
 app.ALL_GRABBERS = make_grabbers()
 
@@ -59,20 +90,25 @@ try:
     detectors = config["detectors"] if "detectors" in config else []
     api_key = config["api_key"] if "api_key" in config else None
     endpoint = config["endpoint"] if "endpoint" in config else None
-    print(detectors)
-    app.DETECTOR_PROCESSES = [multiprocessing.Process(target=run_process, args=(
-        GLDetector(d["id"], d["config"]["vid_src"], d["config"]["trigger_type"], d["config"]["cycle_time"], d["config"]["pin"], d["config"]["pin_active_state"]),
-        api_key,
-        endpoint,
-        app.ALL_GRABBERS,
-    )) for d in detectors]
-    for p in app.DETECTOR_PROCESSES:
-        p.start()
 except:
     print("Failed to load config")
     app.DETECTOR_PROCESSES = []
     with open("./api/gl_config.json", "w") as f:
         json.dump({}, f, indent=4)
+
+try:
+    # app.DETECTOR_PROCESSES = [multiprocessing.Process(target=run_process, args=(
+    #     # GLDetector(d["id"], d["config"]["vid_src"], d["config"]["trigger_type"], d["config"]["cycle_time"], d["config"]["pin"], d["config"]["pin_active_state"]),
+    #     d,
+    #     api_key,
+    #     endpoint,
+    # )) for d in detectors]
+    # for p in app.DETECTOR_PROCESSES:
+    #     p.start()
+    start_processes(api_key, endpoint, detectors)
+except:
+    print("Failed to start processes")
+
 
 ###################### the api #######################
 
@@ -84,13 +120,20 @@ def get_config():
 @app.get("/api/config-json-pretty")
 def get_config_json_pretty():
     with open("./api/gl_config.json", "r") as f:
-        return json.dumps(json.load(f), indent=4)
+        config = json.load(f)
+        if "detectors" in config:
+            for d in config["detectors"]:
+                del d["config"]["image"]
+        return json.dumps(config, indent=4)
 
 @app.get("/api/config-yaml-pretty")
 def get_config_json_pretty():
     with open("./api/gl_config.json", "r") as f:
-        # return json.dumps(json.load(f), indent=4)
-        return yaml.dump(json.load(f), indent=4)
+        config = json.load(f)
+        if "detectors" in config:
+            for d in config["detectors"]:
+                del d["config"]["image"]
+        return yaml.dump(config, indent=4)
     
 @app.get("/api/detectors")
 def get_detectors():
@@ -133,15 +176,10 @@ async def post_detectors(detectors: DetectorList):
     
     # # start new processes
     print("Loading config...")
-    print(detectors)
-    # app.DETECTOR_PROCESSES = [multiprocessing.Process(target=run_process, args=(
-    #     GLDetector(d.id, d.config.vid_src, d.config.trigger_type, d.config.cycle_time, d.config.pin, d.config.pin_active_state),
-    #     api_key,
-    #     endpoint,
-    #     app.ALL_GRABBERS,
-    # )) for d in detectors.detectors]
-    # for p in app.DETECTOR_PROCESSES:
-    #     p.start()
+    try:
+        start_processes(api_key, endpoint, config["detectors"])
+    except:
+        print("Failed to start processes")
 
     # save config
     with open("./api/gl_config.json", "w") as f:
@@ -163,15 +201,24 @@ def post_api_key(key: ApiKey):
 # @app.get("/api/cameras")
 @app.get("/api/refresh-cameras")
 def refresh_cameras():
-    for c in app.ALL_GRABBERS:
-        c["vid"].release()
     app.ALL_GRABBERS = make_grabbers()
-    return get_cameras()
+    return app.ALL_GRABBERS
 
 @app.post("/api/refresh-camera")
 def refresh_camera(config: dict):
     for c in app.ALL_GRABBERS:
         if c["config"] == config:
+            # stop processes
+            indexes_to_suspend = []
+            if "detectors" in app.DETECTOR_CONFIG:
+                detectors = app.DETECTOR_CONFIG["detectors"]
+                for i in range(len(app.DETECTOR_CONFIG["detectors"])):
+                    if detectors[i]["config"] == config and detectors[i]["config"]["enabled"]:
+                        indexes_to_suspend.append(i)
+            for i in indexes_to_suspend:
+                print(i)
+                app.DETECTOR_PROCESSES[i].terminate()
+
             try:
                 v = framegrab.FrameGrabber.create_grabber(config)
             except:
@@ -181,6 +228,16 @@ def refresh_camera(config: dict):
             jpg_64 = base64.b64encode(jpg)
             c["image"] = jpg_64
             v.release()
+
+            # restart processes
+            for i in indexes_to_suspend:
+                app.DETECTOR_PROCESSES[i] = multiprocessing.Process(target=run_process, args=(
+                    app.DETECTOR_CONFIG["detectors"][i],
+                    app.DETECTOR_CONFIG["api_key"],
+                    app.DETECTOR_CONFIG["endpoint"],
+                ))
+                app.DETECTOR_PROCESSES[i].start()
+
             return c
     return None
 
@@ -188,16 +245,16 @@ def refresh_camera(config: dict):
 def get_cameras():
     return app.ALL_GRABBERS
 
-@app.get("/api/cameras/name:{name}")
-def get_camera(name: str):
-    # for c in app.ALL_GRABBERS:
-    #     if c["name"] == name:
-    #         return {"name": c["name"], "image": c["image"]}
-    return None
+# @app.get("/api/cameras/name:{name}")
+# def get_camera(name: str):
+#     # for c in app.ALL_GRABBERS:
+#     #     if c["name"] == name:
+#     #         return {"name": c["name"], "image": c["image"]}
+#     return None
 
-@app.get("/api/cameras/idx:{idx}")
-def get_camera(idx: int):
-    # for c in app.ALL_GRABBERS:
-    #     if c["name"] == name:
-    #         return {"name": c["name"], "image": c["image"]}
-    return None
+# @app.get("/api/cameras/idx:{idx}")
+# def get_camera(idx: int):
+#     # for c in app.ALL_GRABBERS:
+#     #     if c["name"] == name:
+#     #         return {"name": c["name"], "image": c["image"]}
+#     return None

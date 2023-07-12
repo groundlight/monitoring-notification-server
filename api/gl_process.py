@@ -4,6 +4,8 @@ from enum import Enum
 import time
 import groundlight
 import framegrab
+import pydantic
+# from api.index import Detector as PYDetector
 
 class TriggerType(Enum):
     MOTION = 1
@@ -27,39 +29,73 @@ class PinTrigger(Trigger):
     _type = TriggerType.PIN
 
 
-class Detector(Trigger):
-    id: str
-    vid_src: int
-    trigger: Trigger
-    def __init__(self, id: str, vid_src: int, trigger_type: str, cycle_time: Optional[int] = 30, pin: Optional[int] = 0, pin_active_state: Optional[int] = 0) -> Self:
-        self.id = id
-        self.vid_src = vid_src
-        if trigger_type == "motion":
-            self.trigger = MotionTrigger()
-        elif trigger_type == "time":
-            self.trigger = TimeTrigger(cycle_time)
-        elif trigger_type == "pin":
-            self.trigger = PinTrigger(pin)
+# class Detector(Trigger):
+#     id: str
+#     vid_src: int
+#     trigger: Trigger
+#     def __init__(self, id: str, vid_src: int, trigger_type: str, cycle_time: Optional[int] = 30, pin: Optional[int] = 0, pin_active_state: Optional[int] = 0) -> Self:
+#         self.id = id
+#         self.vid_src = vid_src
+#         if trigger_type == "motion":
+#             self.trigger = MotionTrigger()
+#         elif trigger_type == "time":
+#             self.trigger = TimeTrigger(cycle_time)
+#         elif trigger_type == "pin":
+#             self.trigger = PinTrigger(pin)
 
-def run_process(detector: Detector, api_key: str, endpoint: str, grabbers: List[dict]):
+class Config(pydantic.BaseModel):
+    vid_config: dict
+    image: str
+    trigger_type: str
+    cycle_time: int | None
+    pin: int | None
+    pin_active_state: int | None
+
+class Detector(pydantic.BaseModel):
+    name: str
+    id: str
+    query: str
+    config: Config
+
+class DetectorList(pydantic.BaseModel):
+    detectors: list[Detector]
+
+# def run_process(detector: Detector, api_key: str, endpoint: str):
+def run_process(detector: dict, api_key: str, endpoint: str):
     print("Starting process...")
 
-    trigger = detector.trigger
-    vid_src = detector.vid_src
-    grabbers = framegrab.FrameGrabber.autodiscover()
-    keys  = list(grabbers.keys())
-    vid = grabbers[keys[vid_src]]
+    # trigger = detector.trigger
+    # trigger = detector.config.trigger_type
+    # vid_src = detector.vid_src
+    # grabbers = framegrab.FrameGrabber.autodiscover()
+    # keys  = list(grabbers.keys())
+    # vid = grabbers[keys[vid_src]]
+    # for k, v in grabbers.items():
+    #     config = v.config
+    #     if "input_type" in config and config["input_type"] == "webcam":
+    #         v.config["idx"] = v.idx
+
+    # print(detector)
+    # print(detector.keys())
+    # print(detector["config"].keys())
+    
+    vid = framegrab.FrameGrabber.create_grabber(detector["config"]["vid_config"])
+
+    # for v in grabbers.values():
+    #     v.release()
     # vid = grabbers[vid_src]["grabber"]
     # vid = framegrab.grabber.FrameGrabber.create_grabber(config)
 
-    trigger_type = trigger._type
+    # trigger_type = trigger._type
+    trigger_type = detector["config"]["trigger_type"]
 
     delay = lambda: time.sleep(30)
 
     if trigger_type == TriggerType.MOTION:
         return # TODO: implement
-    elif trigger_type == TriggerType.TIME:
-        delay = lambda: time.sleep(trigger.cycle_time)
+    elif trigger_type == TriggerType.TIME or trigger_type == "time":
+        # delay = lambda: time.sleep(trigger.cycle_time)
+        delay = lambda: time.sleep(detector["config"]["cycle_time"])
     elif trigger_type == TriggerType.PIN:
         return # TODO: implement
     else:
@@ -68,9 +104,11 @@ def run_process(detector: Detector, api_key: str, endpoint: str, grabbers: List[
     # if "endpoint" in detector and detector.endpoint is not None:
     #     endpoint = detector.endpoint
     gl = groundlight.Groundlight(api_token=api_key, endpoint=endpoint)
-    det = gl.get_detector(detector.id)
+    det = gl.get_detector(detector["id"])
 
-    print(f"Starting detector {detector.id}...")
+    print(f"Starting detector {detector['id']}...")
+
+    # exit()
 
     while(True):
         frame = vid.grab()
