@@ -40,4 +40,5 @@ type CameraConfigType = {
 	name: string;
 	idx?: number;
 	serial_number?: string | number;
+	image_type?: string;
 };

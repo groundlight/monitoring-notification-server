@@ -5,6 +5,7 @@ import time
 import groundlight
 import framegrab
 import pydantic
+import multiprocessing
 # from api.index import Detector as PYDetector
 
 class TriggerType(Enum):
@@ -61,7 +62,8 @@ class DetectorList(pydantic.BaseModel):
     detectors: list[Detector]
 
 # def run_process(detector: Detector, api_key: str, endpoint: str):
-def run_process(detector: dict, api_key: str, endpoint: str):
+# def run_process(detector: dict, api_key: str, endpoint: str):
+def run_process(detector: dict, api_key: str, endpoint: str, notify_queue: multiprocessing.Queue, photo_queue: multiprocessing.Queue):
     print("Starting process...")
 
     # trigger = detector.trigger
@@ -79,7 +81,7 @@ def run_process(detector: dict, api_key: str, endpoint: str):
     # print(detector.keys())
     # print(detector["config"].keys())
     
-    vid = framegrab.FrameGrabber.create_grabber(detector["config"]["vid_config"])
+    # vid = framegrab.FrameGrabber.create_grabber(detector["config"]["vid_config"])
 
     # for v in grabbers.values():
     #     v.release()
@@ -111,6 +113,10 @@ def run_process(detector: dict, api_key: str, endpoint: str):
     # exit()
 
     while(True):
-        frame = vid.grab()
+        # frame = vid.grab()
+        notify_queue.put("fetch")
+        frame = photo_queue.get(timeout=30)
+        # if not frame:
+        #     continue
         query = gl.submit_image_query(det, frame)
         delay()
