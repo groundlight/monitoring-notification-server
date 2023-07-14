@@ -4,7 +4,10 @@ enum PinState {
 }
 
 type DetConfType = {
-	vid_src: number;
+	// vid_src: number;
+	enabled: boolean;
+	vid_config: CameraConfigType;
+	image: string;
 	trigger_type: string;
 	cycle_time?: number;
 	pin?: number;
@@ -26,4 +29,16 @@ type DetBaseType = {
 	created_at: string;
 	group_name: string;
 	confidence_threshold: number;
+};
+
+type CameraType = {
+	image: string;
+	config: CameraConfigType;
+};
+
+type CameraConfigType = {
+	name: string;
+	idx?: number;
+	serial_number?: string | number;
+	image_type?: string;
 };

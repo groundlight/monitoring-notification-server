@@ -1,4 +1,5 @@
 fastapi==0.95.2
 uvicorn[standard]
 groundlight
-framegrab==0.1.2
+framegrab >= 0.2
+pypylon

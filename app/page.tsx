@@ -2,7 +2,7 @@
 
 import { DetectorCard } from "@/components/DetectorCard";
 import { EditDetectorOverlay } from "@/components/EditDetectorOverlay";
-// import Image from "next/image";
+import Image from "next/image";
 // import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -15,6 +15,8 @@ export default function Home() {
   const [editOverlayIndex, setEditOverlayIndex] = useState<number>(0);
   const [jsonDataUrl, setJsonDataUrl] = useState<string>("");
   const [yamlDataUrl, setYamlDataUrl] = useState<string>("");
+  const [cameras, setCameras] = useState<CameraType[]>([]);
+  const [lastButtonWasAdd, setLastButtonWasAdd] = useState<boolean>(false);
 
   useEffect(() => {
     // fetch detector configs
@@ -33,7 +35,6 @@ export default function Home() {
   useEffect(() => {
     // update json data url
     fetch("/api/config-json-pretty").then((res) => res.json()).then((data) => {
-      console.log(data)
       setJsonDataUrl(`data:application/json,${encodeURIComponent(data)}`);
     });
     // update yaml data url
@@ -110,19 +111,25 @@ export default function Home() {
             <DetectorCard detector={detector} index={index} onclick={() => {
               setEditOverlayIndex(index);
               setShowEditOverlay(true);
+              setLastButtonWasAdd(false);
             }} />
           </div>
         ))}
       </div>
       <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => {
         setShowEditOverlay(true);
+        setLastButtonWasAdd(true);
         setEditOverlayIndex(detectors.length);
         let detectors_copy = [...detectors, {
           name: "New Detector",
           query: "New Query?",
           id: "",
           config: {
-            vid_src: -1,
+            enabled: true,
+            vid_config: {
+              name: "webcam",
+            },
+            image: "",
             trigger_type: "time",
             cycle_time: 30,
           }
@@ -149,6 +156,13 @@ export default function Home() {
           detectors_copy.splice(editOverlayIndex, 1);
           setDetectors(detectors_copy);
           saveDetectors(detectors_copy);
+        }} onBack={() => {
+          setShowEditOverlay(false);
+          if (lastButtonWasAdd) {
+            let detectors_copy = [...detectors];
+            detectors_copy.splice(editOverlayIndex, 1);
+            setDetectors(detectors_copy);
+          }
         }} />
       }
     </main>
