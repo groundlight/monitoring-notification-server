@@ -12,8 +12,8 @@ export const Nav = () => {
             <Link href="/detectors" className={link_style} >
                 Configure Detectors
             </Link>
-            <Link href="/video" className={link_style} >
-                Configure Video Sources
+            <Link href="/sources" className={link_style} >
+                Configure Image Sources
             </Link>
             <div className="m-auto"></div>
             <Link href="/api-key" className={link_style} >

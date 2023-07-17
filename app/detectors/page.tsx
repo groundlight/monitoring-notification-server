@@ -2,6 +2,7 @@
 
 import { DetectorCard } from "@/components/DetectorCard";
 import { EditDetectorOverlay } from "@/components/EditDetectorOverlay";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 // import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -70,7 +71,7 @@ export default function Home() {
   }
 
   return (
-    <main className="flex flex-col items-start mx-10 my-5 gap-2">
+    <main className="flex flex-col items-start px-10 py-5 gap-2 relative">
       <h1 className="text-3xl font-semibold">Configure your Groundlight Detectors</h1>
       <div className="flex flex-wrap items-center gap-2 mx-10 my-5">
         {detectors && detectors.map((detector, index) => (
@@ -83,26 +84,28 @@ export default function Home() {
           </div>
         ))}
       </div>
-      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => {
+      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded fixed bottom-10 right-10 flex items-center" onClick={() => {
         setShowEditOverlay(true);
         setLastButtonWasAdd(true);
         setEditOverlayIndex(detectors.length);
         let detectors_copy = [...detectors, {
-          name: "New Detector",
-          query: "New Query?",
-          id: "",
+          name: availableDetectors && availableDetectors.length > 0 ? availableDetectors[0].name : "New Detector",
+          query: availableDetectors && availableDetectors.length > 0 ? availableDetectors[0].query : "New Query?",
+          id: availableDetectors && availableDetectors.length > 0 ? availableDetectors[0].id : "",
           config: {
             enabled: true,
-            vid_config: {
+            vid_config: detectors ? detectors[0].config.vid_config : {
               name: "webcam",
             },
-            image: "",
+            image: detectors ? detectors[0].config.image : "",
             trigger_type: "time",
             cycle_time: 30,
           }
         }];
         setDetectors(detectors_copy);
       }}>
+        <PlusIcon className="h-6 w-6" />
+        <div className="p-1"></div>
         Add Detector
       </button>
       { detectors.length > 0 && showEditOverlay &&

@@ -1,5 +1,3 @@
-"use client"
-
 import { ArrowLeftIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import { Spinner } from "./Spinner";
@@ -7,7 +5,6 @@ import { Spinner } from "./Spinner";
 export const CameraSetupOverlay = ({ onSelect, back }: { onSelect?: (cam: CameraType) => void, back?: () => void }) => {
     const [cameras, setCameras] = useState<CameraType[] | undefined>(undefined);
     const [camerasWaiting, setCamerasWaiting] = useState<boolean[]>([]); // cameras that are waiting for a response
-    const [newCamera, setNewCamera] = useState<boolean>(false);
 
     useEffect(() => {
         // fetch cameras
@@ -82,37 +79,6 @@ export const CameraSetupOverlay = ({ onSelect, back }: { onSelect?: (cam: Camera
                         ))}
                     </div>
                 </div>
-                {/* add camera */}
-                {/* <div className="font-bold">Add Camera</div> */}
-                {
-                    newCamera &&
-                    <div className="flex flex-col gap-2 mt-4">
-                        <div className="flex gap-2">
-                            <div className="font-bold place-self-center">Camera Name:</div>
-                            <input className="border-2 border-gray-300 rounded-md p-2 w-full" type="text" placeholder="Camera Name" />
-                        </div>
-                        <div className="flex gap-2">
-                            <div className="font-bold place-self-center">Camera URL:</div>
-                            <input className="border-2 border-gray-300 rounded-md p-2 w-full" type="text" placeholder="Camera URL" />
-                        </div>
-                        <div className="flex gap-2">
-                            <div className="font-bold place-self-center">Camera Username:</div>
-                            <input className="border-2 border-gray-300 rounded-md p-2 w-full" type="text" placeholder="Camera Username" />
-                        </div>
-                        <div className="flex gap-2">
-                            <div className="font-bold place-self-center">Camera Password:</div>
-                            <input className="border-2 border-gray-300 rounded-md p-2 w-full" type="text" placeholder="Camera Password" />
-                        </div>
-                        <div className="flex gap-2">
-                            <div className="font-bold place-self-center">Camera RTSP URL:</div>
-                            <input className="border-2 border-gray-300 rounded-md p-2 w-full" type="text" placeholder="Camera RTSP URL" />
-                        </div>
-                    </div>
-                }
-                <div className="p-2"></div>
-                <button className={`${newCamera ? "bg-red-500 hover:bg-red-700" : "bg-blue-500 hover:bg-blue-700"} text-white font-bold py-2 px-4 rounded`} onClick={() => setNewCamera(!newCamera)}>
-                    { newCamera ? "Cancel" : "Add Camera" }
-                </button>
             </div>
         </div>
     );

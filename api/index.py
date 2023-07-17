@@ -39,6 +39,14 @@ app.DETECTOR_PHOTO_QUEUES: List[multiprocessing.Queue] = []
 app.DETECTOR_GRAB_NOTIFY_QUEUES: List[multiprocessing.Queue] = []
 app.DETECTOR_CONFIG = {}
 
+def get_base64_img(g: FrameGrabber) -> str | None:
+    try:
+        return base64.b64encode(cv2.imencode(".jpg", g.grab())[1])
+    except:
+        # g.release()
+        return None
+
+
 def start_processes(api_key, endpoint, detectors):
     app.DETECTOR_CONFIG = {
         "api_key": api_key,
@@ -101,7 +109,7 @@ try:
 except:
     print("Failed to start processes")
 
-app.ALL_GRABBERS = make_grabbers()
+app.ALL_GRABBERS: List[FrameGrabber] = make_grabbers()
 
 ###################### the api #######################
 
@@ -196,13 +204,26 @@ def post_api_key(key: ApiKey):
 def refresh_camera(config: dict):
     for g in app.ALL_GRABBERS:
         if g.config == config:
-            return {"config": config, "image": base64.b64encode(cv2.imencode(".jpg", g.grab())[1])}
+            return {"config": config, "image": get_base64_img(g)}
+            # try:
+            # except:
+            #     return {"config": config, "image": None}
         
     return None
 
 @app.get("/api/cameras")
 def get_cameras():
-    return [{"config": g.config, "image": base64.b64encode(cv2.imencode(".jpg", g.grab())[1])} for g in app.ALL_GRABBERS]
+    return [{"config": g.config, "image": get_base64_img(g)} for g in app.ALL_GRABBERS]
+
+@app.post("/api/cameras/autodetect")
+def autodetect_cameras():
+    new_grabbers: List[FrameGrabber] = framegrab.FrameGrabber.autodiscover().values()
+    app.ALL_GRABBERS.extend(new_grabbers)
+
+@app.post("/api/cameras/new")
+def make_camera(config: dict):
+    grabber = framegrab.FrameGrabber.create_grabber(config)
+    app.ALL_GRABBERS.append(grabber)
 
 async def test():
     while True:
