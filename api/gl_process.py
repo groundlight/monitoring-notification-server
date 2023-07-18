@@ -2,37 +2,6 @@ import time
 import groundlight
 import multiprocessing
 
-# class Detector(Trigger):
-#     id: str
-#     vid_src: int
-#     trigger: Trigger
-#     def __init__(self, id: str, vid_src: int, trigger_type: str, cycle_time: Optional[int] = 30, pin: Optional[int] = 0, pin_active_state: Optional[int] = 0) -> Self:
-#         self.id = id
-#         self.vid_src = vid_src
-#         if trigger_type == "motion":
-#             self.trigger = MotionTrigger()
-#         elif trigger_type == "time":
-#             self.trigger = TimeTrigger(cycle_time)
-#         elif trigger_type == "pin":
-#             self.trigger = PinTrigger(pin)
-
-# class Config(pydantic.BaseModel):
-#     vid_config: dict
-#     image: str
-#     trigger_type: str
-#     cycle_time: int | None
-#     pin: int | None
-#     pin_active_state: int | None
-
-# class Detector(pydantic.BaseModel):
-#     name: str
-#     id: str
-#     query: str
-#     config: Config
-
-# class DetectorList(pydantic.BaseModel):
-#     detectors: list[Detector]
-
 def run_process(detector: dict, api_key: str, endpoint: str, notify_queue: multiprocessing.Queue, photo_queue: multiprocessing.Queue):
     print("Starting process...")
 
@@ -44,7 +13,6 @@ def run_process(detector: dict, api_key: str, endpoint: str, notify_queue: multi
         # TODO: implement
         raise ValueError(f"Trigger type [{trigger_type}] not yet supported.")
     elif trigger_type == "time":
-        # delay = lambda: time.sleep(trigger.cycle_time)
         delay = lambda: time.sleep(detector["config"]["cycle_time"])
     elif trigger_type == "pin":
         # TODO: implement

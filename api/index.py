@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import multiprocessing
 import time
 from typing import List, Union
@@ -15,6 +16,7 @@ import asyncio
 
 class Config(pydantic.BaseModel):
     enabled: bool
+    imgsrc_idx: int
     vid_config: dict
     image: str
     trigger_type: str
@@ -30,6 +32,10 @@ class Detector(pydantic.BaseModel):
 
 class DetectorList(pydantic.BaseModel):
     detectors: List[Detector]
+
+@dataclass
+class FakeDetector:
+    config: dict
 
 app = FastAPI()
 
@@ -82,27 +88,20 @@ def start_processes(api_key, endpoint, detectors):
 
 def make_grabbers():
     grabbers: List[framegrab.grabber.WebcamFrameGrabber | framegrab.grabber.BaslerUSBFrameGrabber | framegrab.grabber.RealSenseFrameGrabber | framegrab.grabber.RTSPFrameGrabber] = []
-    if "detectors" not in app.DETECTOR_CONFIG:
+    config = fetch_config()
+    if "image_sources" not in config:
         print("Failed to make grabbers")
         return grabbers
-    for d in app.DETECTOR_CONFIG["detectors"]:
-        already_created = False
-        for g in grabbers:
-            if g.config == d["config"]["vid_config"]:
-                already_created = True
-                break
 
-        if already_created:
-            break
-
+    for src in config["image_sources"]:
         try:
-            config = d["config"]["vid_config"]
-            grabbers.append(framegrab.FrameGrabber.create_grabber(config))
+            g = framegrab.FrameGrabber.create_grabber(src)
+            grabbers.append(g)
         except:
-            print(f"Failed to create framegrabber for {d['name']}")
-    
+            print(f"Failed to create image source [{src['name']}]")
+            grabbers.append(FakeDetector(src))
+
     return grabbers
-    # return framegrab.FrameGrabber.create_grabbers(fetch_config()["image_sources"]).values()
 
 print("Loading config...")
 try:
@@ -222,6 +221,20 @@ def make_camera(config: dict):
     app.ALL_GRABBERS.append(grabber)
     set_in_config({"image_sources": list(map(lambda g: g.config, app.ALL_GRABBERS))})
 
+@app.post("/api/cameras/delete")
+def make_camera(index: dict):
+    index = index["idx"]
+    config = fetch_config()
+    config["image_sources"] = config["image_sources"].pop(index)
+    app.ALL_GRABBERS.pop(index)
+    for i in range(len(config["detectors"])):
+        if config["detectors"][i]["config"]["imgsrc_idx"] == index:
+            config["detectors"][i]["config"]["imgsrc_idx"] = -1
+        elif config["detectors"][i]["config"]["imgsrc_idx"] > index:
+            config["detectors"][i]["config"]["imgsrc_idx"] -= 1
+    app.DETECTOR_CONFIG["detectors"] = config["detectors"]
+    store_config(config)
+
 @app.get("/api/finished_intro")
 def intro_finished():
     set_in_config({"intro_sequence_finished": True})
@@ -234,13 +247,8 @@ async def test():
                 print("Taking photo")
                 app.DETECTOR_GRAB_NOTIFY_QUEUES[i].get_nowait()
                 d = app.DETECTOR_CONFIG["detectors"][i]
-                vid_config = d["config"]["vid_config"]
-                # img = app.ALL_GRABBERS[d["config"]["imgsrc_idx"]].grab()
-                # app.DETECTOR_PHOTO_QUEUES[i].put(img)
-                for g in app.ALL_GRABBERS:
-                    if g.config == vid_config:
-                        app.DETECTOR_PHOTO_QUEUES[i].put(g.grab())
-                        break
+                img = app.ALL_GRABBERS[d["config"]["imgsrc_idx"]].grab()
+                app.DETECTOR_PHOTO_QUEUES[i].put(img)
         await asyncio.sleep(1)
 
 @app.on_event("startup")

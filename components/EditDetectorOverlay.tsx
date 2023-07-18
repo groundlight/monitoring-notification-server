@@ -24,9 +24,10 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
     const isDetectorValid = newDetector ?
         name !== "" && query !== "" && !detectors.map(d => d.name).includes(name) : id !== "" && detectors.map(d => d.name).includes(name);
 
-    const handleCameraSelect = (cam: CameraType) => {
+    const handleCameraSelect = (cam: CameraType, index: number) => {
         setVidConfig(cam.config);
         setImage(cam.image);
+        setImgSrcIdx(index);
         setSelectCamera(false);
     }
 
@@ -79,7 +80,7 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
 
                     {
                         selectCamera &&
-                        <CameraSetupOverlay back={() => setSelectCamera(false)} onSelect={(cam) => handleCameraSelect(cam)} />
+                        <CameraSetupOverlay back={() => setSelectCamera(false)} onSelect={(cam, idx) => handleCameraSelect(cam, idx)} />
                     }
 
                     <div className="flex gap-2">
@@ -120,7 +121,7 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                         id,
                         config: {
                             enabled: detectorEnabled,
-                            imgsrc_idx: 0,
+                            imgsrc_idx: imgSrcIdx,
                             vid_config: vidConfig,
                             image: image,
                             trigger_type: triggerType,

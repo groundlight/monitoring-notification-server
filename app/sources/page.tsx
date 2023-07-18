@@ -2,7 +2,7 @@
 
 import { NewCameraOverlay } from "@/components/NewCameraOverlay";
 import { Spinner } from "@/components/Spinner";
-import { ArrowPathIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 
 export default function VideoPage() {
@@ -57,6 +57,16 @@ export default function VideoPage() {
         }).then(() => fetchCameras());
     }
 
+    const deleteCamera = (idx: number) => {
+        fetch("/api/cameras/delete", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({idx: idx})
+        }).then(() => fetchCameras());
+    }
+
     return (
         <main className="flex flex-col items-start px-10 py-5 gap-2 relative">
             <h1 className="text-3xl font-semibold">Configure your Image Sources</h1>
@@ -79,6 +89,10 @@ export default function VideoPage() {
                         }
                         <div className="m-auto p-2"></div>
                         <div className="font-bold">{camera.config.name}</div>
+                        <div className="m-auto p-2"></div>
+                        <button className="bg-red-500 hover:bg-red-700 text-white font-bold px-4 py-2 rounded mr-auto" onClick={() => deleteCamera(index)}>
+                            <TrashIcon className="h-4 w-4" />
+                        </button>
                     </div>
                 ))}
             </div>

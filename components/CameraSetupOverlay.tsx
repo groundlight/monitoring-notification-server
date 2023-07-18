@@ -2,7 +2,7 @@ import { ArrowLeftIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import { Spinner } from "./Spinner";
 
-export const CameraSetupOverlay = ({ onSelect, back }: { onSelect?: (cam: CameraType) => void, back?: () => void }) => {
+export const CameraSetupOverlay = ({ onSelect, back }: { onSelect?: (cam: CameraType, index: number) => void, back?: () => void }) => {
     const [cameras, setCameras] = useState<CameraType[] | undefined>(undefined);
     const [camerasWaiting, setCamerasWaiting] = useState<boolean[]>([]); // cameras that are waiting for a response
 
@@ -67,7 +67,7 @@ export const CameraSetupOverlay = ({ onSelect, back }: { onSelect?: (cam: Camera
                                 <div className="m-auto p-2"></div>
                                 <div className="font-bold">{camera.config.name}</div>
                                 <div className="m-auto p-2"></div>
-                                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded place-self-end" onClick={() => onSelect && onSelect(camera)}>
+                                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded place-self-end" onClick={() => onSelect && onSelect(camera, index)}>
                                     use
                                 </button>
                             </div>
