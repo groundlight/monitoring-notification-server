@@ -1,10 +1,5 @@
-from dataclasses import dataclass
-from typing import List, Optional, Self
-from enum import Enum
 import time
 import groundlight
-import framegrab
-import pydantic
 import multiprocessing
 
 # class Detector(Trigger):

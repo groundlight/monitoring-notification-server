@@ -1,6 +1,6 @@
 import multiprocessing
 import time
-from typing import List
+from typing import List, Union
 from fastapi import FastAPI
 import json
 import yaml
@@ -18,9 +18,9 @@ class Config(pydantic.BaseModel):
     vid_config: dict
     image: str
     trigger_type: str
-    cycle_time: int | None
-    pin: int | None
-    pin_active_state: int | None
+    cycle_time: Union[int, None]
+    pin: Union[int, None]
+    pin_active_state: Union[int, None]
 
 class Detector(pydantic.BaseModel):
     name: str
@@ -29,7 +29,7 @@ class Detector(pydantic.BaseModel):
     config: Config
 
 class DetectorList(pydantic.BaseModel):
-    detectors: list[Detector]
+    detectors: List[Detector]
 
 app = FastAPI()
 
@@ -38,7 +38,7 @@ app.DETECTOR_PHOTO_QUEUES: List[multiprocessing.Queue] = []
 app.DETECTOR_GRAB_NOTIFY_QUEUES: List[multiprocessing.Queue] = []
 app.DETECTOR_CONFIG = {}
 
-def get_base64_img(g: FrameGrabber) -> str | None:
+def get_base64_img(g: FrameGrabber) -> Union[str, None]:
     try:
         return base64.b64encode(cv2.imencode(".jpg", g.grab())[1])
     except:
