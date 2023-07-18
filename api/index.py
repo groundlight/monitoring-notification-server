@@ -227,12 +227,13 @@ def make_camera(index: dict):
     config = fetch_config()
     config["image_sources"] = config["image_sources"].pop(index)
     app.ALL_GRABBERS.pop(index)
-    for i in range(len(config["detectors"])):
-        if config["detectors"][i]["config"]["imgsrc_idx"] == index:
-            config["detectors"][i]["config"]["imgsrc_idx"] = -1
-        elif config["detectors"][i]["config"]["imgsrc_idx"] > index:
-            config["detectors"][i]["config"]["imgsrc_idx"] -= 1
-    app.DETECTOR_CONFIG["detectors"] = config["detectors"]
+    if "detectors" in config:
+        for i in range(len(config["detectors"])):
+            if config["detectors"][i]["config"]["imgsrc_idx"] == index:
+                config["detectors"][i]["config"]["imgsrc_idx"] = -1
+            elif config["detectors"][i]["config"]["imgsrc_idx"] > index:
+                config["detectors"][i]["config"]["imgsrc_idx"] -= 1
+        app.DETECTOR_CONFIG["detectors"] = config["detectors"]
     store_config(config)
 
 @app.get("/api/finished_intro")
