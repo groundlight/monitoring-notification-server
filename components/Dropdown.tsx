@@ -29,7 +29,7 @@ export const Dropdown = ({ options, selected, setSelected, valid, onChange }:
                 </span>
             </div>
 
-            <div className={`${open ? "z-10" : "hidden"} origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100`} role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+            <div className={`${open ? "z-10" : "hidden"} origin-top-right absolute right-0 mt-2 rounded-md shadow-lg flex flex-col overflow-scroll bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100`} role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
                 {options.map((option, index) => (
                     <div key={index} className="py-1">
                         <button className="text-gray-700 block w-full text-left px-4 py-2 text-sm" role="menuitem" onClick={(e) => {

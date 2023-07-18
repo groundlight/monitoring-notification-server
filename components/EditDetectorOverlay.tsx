@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dropdown } from "./Dropdown";
 import { CameraSetupOverlay } from "./CameraSetupOverlay";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { CameraDropdown } from "./CameraDropdown";
 
 export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDelete, onBack }:
     { detector: DetType, detectors: DetBaseType[], index: number, onSave: (e: { detector: DetType, isNewDetector: boolean, index: number }) => void, onDelete: (e: any) => void, onBack: () => void }
@@ -16,6 +17,7 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
     const [pinActiveState, setPinActiveState] = useState<number | undefined>(detector.config.pin_active_state);
     const [selectCamera, setSelectCamera] = useState<boolean>(false);
     const [vidConfig, setVidConfig] = useState<CameraConfigType>(detector.config.vid_config);
+    const [imgSrcIdx, setImgSrcIdx] = useState<number>(0);
     const [image, setImage] = useState<string>(detector.config.image);
     const [detectorEnabled, setDetectorEnabled] = useState<boolean>(detector.config.enabled);
 
@@ -29,119 +31,119 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
     }
 
     return (
-        <div className="flex flex-col items-center shadow-md bg-white rounded-md p-5 w-[40%] fixed">
-            <div className="flex flex-col gap-2 relative">
-                {/* create new detector checkbox */}
-                <div className="flex gap-2">
-                    <div className="font-bold place-self-center">Create New Detector:</div>
-                    <input className="border-2 border-gray-300 rounded-md p-2 w-4 ml-auto mr-2" type="checkbox" checked={newDetector} onChange={(e) => setNewDetector(e.target.checked)} />
-                </div>
-                {
-                    newDetector ?
-                        <> {/* new detector */}
-                            <div className="flex gap-2">
-                                <div className="font-bold place-self-center">Detector Name:</div>
-                                <input className={`border-2 ${isDetectorValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Detector ID" value={name} onChange={(e) => setName(e.target.value)} />
-                            </div>
-                            <div className="flex gap-2">
-                                <div className="font-bold place-self-center">Detector Query:</div>
-                                <input className="border-2 border-gray-300 rounded-md p-2 w-full" type="text" placeholder="Detector Query" value={query} onChange={(e) => setQuery(e.target.value)} />
-                            </div>
-                        </>
-                    :
-                        <> {/* existing detector */}
-                            <div className="flex gap-2">
-                                <div className="font-bold place-self-center">Detector Name:</div>
-                                {/* <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} /> */}
-                                <Dropdown options={detectors.map((detector) => detector.name)} selected={name} setSelected={(e, idx) => {
-                                    setName(e);
-                                    setQuery(detectors[idx].query);
-                                    setId(detectors[idx].id);
-                                }} valid={isDetectorValid} />
-                            </div>
-                            <div className="flex gap-2">
-                                <div className="font-bold  place-self-center">Detector Query:</div>
-                                {/* <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="text" placeholder="Query" value={query} onChange={(e) => setQuery(e.target.value)} /> */}
-                                {/* <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="text" placeholder="Query" value={query} onChange={(e) => {}} /> */}
-                                <div className="border-2 border-gray-300 rounded-md p-2 w-full"><div className="pt-0.5">{query}</div></div>
-                            </div>
-                        </>
-                }
-
-                <div className="flex gap-2">
-                    <div className="font-bold  place-self-center">Video Source:</div>
-                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto" onClick={() => setSelectCamera(true)} >
-                        Select
-                    </button>
-                </div>
-                <img src={`data:image/jpeg;base64,${image}`} width={640} height={480} alt={name} className="w-3/4 place-self-center" />
-
-                {
-                    selectCamera &&
-                    <CameraSetupOverlay back={() => setSelectCamera(false)} onSelect={(cam) => handleCameraSelect(cam)} /> // TODO: onSelect
-                }
-
-                <div className="flex gap-2">
-                    <div className="font-bold  place-self-center">Trigger Type:</div>
-                    <Dropdown options={["time", "pin", "motion"]} selected={triggerType} setSelected={(e, idx) => setTriggerType(e)} />
-                </div>
-                {
-                    triggerType === "time" &&
+        <div className="bg-blend-darken w-full h-full absolute backdrop-blur-lg top-0 left-0 flex pt-20 place-items-start justify-center" >
+            <div className="flex flex-col items-center shadow-md bg-white rounded-md p-5 w-[40%] relative">
+                <div className="flex flex-col gap-2 relative">
+                    {/* create new detector checkbox */}
                     <div className="flex gap-2">
-                        <div className="font-bold  place-self-center">Cycle Time:</div>
-                        <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="number" placeholder="Cycle Time" value={cycleTime} onChange={(e) => setCycleTime(parseInt(e.target.value))} min={0} />
+                        <div className="font-bold place-self-center">Create New Detector:</div>
+                        <input className="border-2 border-gray-300 rounded-md p-2 w-4 ml-auto mr-2" type="checkbox" checked={newDetector} onChange={(e) => setNewDetector(e.target.checked)} />
                     </div>
-                }
-                {
-                    triggerType === "pin" &&
-                    <div>
-                        <div className="flex gap-2">
-                            <div className="font-bold  place-self-center">Pin:</div>
-                            <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="number" placeholder="Pin" value={pin} onChange={(e) => setPin(parseInt(e.target.value))} min={0} />
-                        </div>
-                        <div className="flex gap-2">
-                            <div className="font-bold  place-self-center">Pin Active State:</div>
-                            <Dropdown options={["LOW", "HIGH"]} selected={pinActiveState === 0 ? "LOW" : "HIGH"} setSelected={(e, idx) => setPinActiveState(e === "LOW" ? 0 : 1)} />
-                        </div>
-                    </div>
-                }
-                <div className="flex gap-2">
-                    <div className="font-bold place-self-center">Detector Enabled:</div>
-                    <input className="border-2 border-gray-300 rounded-md p-2 w-4 ml-auto mr-2" type="checkbox" checked={detectorEnabled} onChange={(e) => setDetectorEnabled(e.target.checked)} />
-                </div>
-            </div>
-            <div className="p-8"></div>
-            <button className={`${isDetectorValid ? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500"} text-white font-bold py-2 px-4 rounded absolute bottom-2 right-2`} disabled={!isDetectorValid} onClick={() => {
-                // if (id === "") return;
-                onSave({
-                detector: {
-                    name,
-                    query,
-                    id,
-                    config: {
-                        enabled: detectorEnabled,
-                        vid_config: vidConfig,
-                        image: image,
-                        trigger_type: triggerType,
-                        cycle_time: cycleTime,
-                        pin,
-                        pin_active_state: pinActiveState,
+                    {
+                        newDetector ?
+                            <> {/* new detector */}
+                                <div className="flex gap-2">
+                                    <div className="font-bold place-self-center">Detector Name:</div>
+                                    <input className={`border-2 ${isDetectorValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Detector ID" value={name} onChange={(e) => setName(e.target.value)} />
+                                </div>
+                                <div className="flex gap-2">
+                                    <div className="font-bold place-self-center">Detector Query:</div>
+                                    <input className="border-2 border-gray-300 rounded-md p-2 w-full" type="text" placeholder="Detector Query" value={query} onChange={(e) => setQuery(e.target.value)} />
+                                </div>
+                            </>
+                        :
+                            <> {/* existing detector */}
+                                <div className="flex gap-2">
+                                    <div className="font-bold place-self-center">Detector Name:</div>
+                                    <Dropdown options={detectors.map((detector) => detector.name)} selected={name} setSelected={(e, idx) => {
+                                        setName(e);
+                                        setQuery(detectors[idx].query);
+                                        setId(detectors[idx].id);
+                                    }} valid={isDetectorValid} />
+                                </div>
+                                <div className="flex gap-2">
+                                    <div className="font-bold  place-self-center">Detector Query:</div>
+                                    <div className="border-2 border-gray-300 rounded-md p-2 w-full"><div className="pt-0.5">{query}</div></div>
+                                </div>
+                            </>
                     }
-                },
-                index: index,
-                isNewDetector: newDetector,
-                })
-            }}>
-                Save
-            </button>
-            <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded absolute bottom-2 left-2" onClick={() => onDelete({
-                index
-            })}>
-                Delete
-            </button>
-            <button className="absolute top-0 -left-12 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" onClick={() => onBack()} >
-                <ArrowLeftIcon className="h-5 w-5" />
-            </button>
+
+                    <div className="flex gap-2">
+                        <div className="font-bold  place-self-center">Video Source:</div>
+                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto" onClick={() => setSelectCamera(true)} >
+                            Select
+                        </button>
+                        {/* <CameraDropdown /> */}
+                    </div>
+                    <img src={`data:image/jpeg;base64,${image}`} width={640} height={480} alt={name} className="w-3/4 place-self-center" />
+
+                    {
+                        selectCamera &&
+                        <CameraSetupOverlay back={() => setSelectCamera(false)} onSelect={(cam) => handleCameraSelect(cam)} />
+                    }
+
+                    <div className="flex gap-2">
+                        <div className="font-bold  place-self-center">Trigger Type:</div>
+                        <Dropdown options={["time", "pin", "motion"]} selected={triggerType} setSelected={(e, idx) => setTriggerType(e)} />
+                    </div>
+                    {
+                        triggerType === "time" &&
+                        <div className="flex gap-2">
+                            <div className="font-bold  place-self-center">Cycle Time:</div>
+                            <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="number" placeholder="Cycle Time" value={cycleTime} onChange={(e) => setCycleTime(parseInt(e.target.value))} min={0} />
+                        </div>
+                    }
+                    {
+                        triggerType === "pin" &&
+                        <div>
+                            <div className="flex gap-2">
+                                <div className="font-bold  place-self-center">Pin:</div>
+                                <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="number" placeholder="Pin" value={pin} onChange={(e) => setPin(parseInt(e.target.value))} min={0} />
+                            </div>
+                            <div className="flex gap-2">
+                                <div className="font-bold  place-self-center">Pin Active State:</div>
+                                <Dropdown options={["LOW", "HIGH"]} selected={pinActiveState === 0 ? "LOW" : "HIGH"} setSelected={(e, idx) => setPinActiveState(e === "LOW" ? 0 : 1)} />
+                            </div>
+                        </div>
+                    }
+                    <div className="flex gap-2">
+                        <div className="font-bold place-self-center">Detector Enabled:</div>
+                        <input className="border-2 border-gray-300 rounded-md p-2 w-4 ml-auto mr-2" type="checkbox" checked={detectorEnabled} onChange={(e) => setDetectorEnabled(e.target.checked)} />
+                    </div>
+                </div>
+                <div className="p-8"></div>
+                <button className={`${isDetectorValid ? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500"} text-white font-bold py-2 px-4 rounded absolute bottom-2 right-2`} disabled={!isDetectorValid} onClick={() => {
+                    onSave({
+                    detector: {
+                        name,
+                        query,
+                        id,
+                        config: {
+                            enabled: detectorEnabled,
+                            imgsrc_idx: 0,
+                            vid_config: vidConfig,
+                            image: image,
+                            trigger_type: triggerType,
+                            cycle_time: cycleTime,
+                            pin,
+                            pin_active_state: pinActiveState,
+                        }
+                    },
+                    index: index,
+                    isNewDetector: newDetector,
+                    })
+                }}>
+                    Save
+                </button>
+                <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded absolute bottom-2 left-2" onClick={() => onDelete({
+                    index
+                })}>
+                    Delete
+                </button>
+                <button className="absolute top-0 -left-12 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" onClick={() => onBack()} >
+                    <ArrowLeftIcon className="h-5 w-5" />
+                </button>
+            </div>
         </div>
     );
 }
