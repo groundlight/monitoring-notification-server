@@ -2,6 +2,7 @@
 
 import { NewCameraOverlay } from "@/components/NewCameraOverlay";
 import { Spinner } from "@/components/Spinner";
+import { BASE_SERVER_URL } from "@/utils/config";
 import { ArrowPathIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 
@@ -11,7 +12,7 @@ export default function VideoPage() {
     const [addCameraOverlayOpen, setAddCameraOverlayOpen] = useState<boolean>(false);
 
     const fetchCameras = () => {
-        fetch("/api/cameras").then((res) => res.json()).then((data) => {
+        fetch(BASE_SERVER_URL + "/api/cameras").then((res) => res.json()).then((data) => {
             setCameras(data as CameraType[] ? data as CameraType[] : []);
             if (data as CameraType[]) setCamerasWaiting(new Array((data as CameraType[]).length).fill(false));
         });
@@ -28,7 +29,7 @@ export default function VideoPage() {
         setCamerasWaiting(cameras_waiting_copy);
         
         // fetch cameras
-        fetch("/api/refresh-camera", {
+        fetch(BASE_SERVER_URL + "/api/refresh-camera", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -49,7 +50,7 @@ export default function VideoPage() {
     }
 
     const autodetect = () => {
-        fetch("/api/cameras/autodetect", {
+        fetch(BASE_SERVER_URL + "/api/cameras/autodetect", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -58,7 +59,7 @@ export default function VideoPage() {
     }
 
     const deleteCamera = (idx: number) => {
-        fetch("/api/cameras/delete", {
+        fetch(BASE_SERVER_URL + "/api/cameras/delete", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

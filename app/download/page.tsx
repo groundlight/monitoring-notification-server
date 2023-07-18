@@ -1,5 +1,6 @@
 "use client"
 
+import { BASE_SERVER_URL } from "@/utils/config";
 import { useEffect, useState } from "react";
 
 export default function Page() {
@@ -8,11 +9,11 @@ export default function Page() {
 
     useEffect(() => {
         // update json data url
-        fetch("/api/config-json-pretty").then((res) => res.json()).then((data) => {
+        fetch(BASE_SERVER_URL + "/api/config-json-pretty").then((res) => res.json()).then((data) => {
           setJsonDataUrl(`data:application/json,${encodeURIComponent(data)}`);
         });
         // update yaml data url
-        fetch("/api/config-yaml-pretty").then((res) => res.json()).then((data) => {
+        fetch(BASE_SERVER_URL + "/api/config-yaml-pretty").then((res) => res.json()).then((data) => {
           setYamlDataUrl(`data:application/yaml,${encodeURIComponent(data)}`);
         });
       }, []);

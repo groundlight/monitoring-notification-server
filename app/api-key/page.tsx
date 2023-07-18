@@ -1,5 +1,6 @@
 "use client"
 
+import { BASE_SERVER_URL } from "@/utils/config";
 import { useEffect, useState } from "react";
 
 export default function Page() {
@@ -7,14 +8,14 @@ export default function Page() {
 
     useEffect(() => {
         // fetch detector configs
-        fetch("/api/config").then((res) => res.json()).then((data) => {
+        fetch(BASE_SERVER_URL + "/api/config").then((res) => res.json()).then((data) => {
           setApiKeyTemp(data.api_key && data.api_key != "" ? (data.api_key as string).substring(0, 15) + "..." : "");
         });
       }, []);
 
     const saveApiKey = (apiKey: string) => {
         // save api key
-        fetch("/api/config/api_key", {
+        fetch(BASE_SERVER_URL + "/api/config/api_key", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

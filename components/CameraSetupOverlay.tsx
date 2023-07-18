@@ -1,6 +1,7 @@
 import { ArrowLeftIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import { Spinner } from "./Spinner";
+import { BASE_SERVER_URL } from "@/utils/config";
 
 export const CameraSetupOverlay = ({ onSelect, back }: { onSelect?: (cam: CameraType, index: number) => void, back?: () => void }) => {
     const [cameras, setCameras] = useState<CameraType[] | undefined>(undefined);
@@ -8,7 +9,7 @@ export const CameraSetupOverlay = ({ onSelect, back }: { onSelect?: (cam: Camera
 
     useEffect(() => {
         // fetch cameras
-        fetch("/api/cameras").then((res) => res.json()).then((data) => {
+        fetch(BASE_SERVER_URL + "/api/cameras").then((res) => res.json()).then((data) => {
             setCameras(data as CameraType[] ? data as CameraType[] : []);
             if (data as CameraType[]) setCamerasWaiting(new Array((data as CameraType[]).length).fill(false));
         });
@@ -21,7 +22,7 @@ export const CameraSetupOverlay = ({ onSelect, back }: { onSelect?: (cam: Camera
         setCamerasWaiting(cameras_waiting_copy);
         
         // fetch cameras
-        fetch("/api/refresh-camera", {
+        fetch(BASE_SERVER_URL + "/api/refresh-camera", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

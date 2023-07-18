@@ -225,7 +225,7 @@ def make_camera(config: dict):
 def make_camera(index: dict):
     index = index["idx"]
     config = fetch_config()
-    config["image_sources"] = config["image_sources"].pop(index)
+    config["image_sources"].pop(index)
     app.ALL_GRABBERS.pop(index)
     if "detectors" in config:
         for i in range(len(config["detectors"])):

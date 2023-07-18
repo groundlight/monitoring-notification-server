@@ -1,6 +1,7 @@
 "use client"
 
 import { DetectorCard } from "@/components/DetectorCard";
+import { BASE_SERVER_URL } from "@/utils/config";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -13,7 +14,7 @@ export default function Home() {
 
 	useEffect(() => {
 		// fetch detector configs
-		fetch("/api/config").then((res) => res.json()).then((data) => {
+		fetch(BASE_SERVER_URL + "/api/config").then((res) => res.json()).then((data) => {
 			setDetectors(data.detectors as DetType[] ? (data.detectors as DetType[]).filter(d => d.config.enabled) : []);
 			setIsDet(!!data.detectors && data.detectors.length > 0);
 			setIsApiKey(!!data.api_key && data.api_key != "");
@@ -47,7 +48,7 @@ export default function Home() {
 								<input className="rounded-md w-8 ml-auto" type="checkbox" checked={isDet} readOnly />
 							</Link>
 							<button className="bg-blue-500 hover:bg-blue-700 text-white font-bold px-6 py-3 m-1 w-40 rounded-xl" onClick={() => {
-								fetch("/api/finished_intro").then(() => setIntroCompleted(true));
+								fetch(BASE_SERVER_URL + "/api/finished_intro").then(() => setIntroCompleted(true));
 							}}>
 								{(isApiKey && isImgSrc && isDet) ? "Continue!" : "Skip"}
 							</button>

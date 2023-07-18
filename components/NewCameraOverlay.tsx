@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Dropdown } from "./Dropdown";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { BASE_SERVER_URL } from "@/utils/config";
 
 const CameraTypes = ["RTSP Feed"];
 
@@ -11,7 +12,7 @@ export const NewCameraOverlay = ({ onBack }: { onBack: () => void }) => {
 
     const makeNewImageSource = async () => {
         if (srcType == "RTSP Feed") {
-            await fetch("/api/cameras/new", {
+            await fetch(BASE_SERVER_URL + "/api/cameras/new", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

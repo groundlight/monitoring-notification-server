@@ -2,6 +2,7 @@
 
 import { DetectorCard } from "@/components/DetectorCard";
 import { EditDetectorOverlay } from "@/components/EditDetectorOverlay";
+import { BASE_SERVER_URL } from "@/utils/config";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 
@@ -14,19 +15,19 @@ export default function Home() {
 
   useEffect(() => {
     // fetch detector configs
-    fetch("/api/config").then((res) => res.json()).then((data) => {
+    fetch(BASE_SERVER_URL + "/api/config").then((res) => res.json()).then((data) => {
       setDetectors(data.detectors as DetType[] ? data.detectors as DetType[] : []);
     });
 
     // fetch available detectors
-    fetch("/api/detectors").then((res) => res.json()).then((data) => {
+    fetch(BASE_SERVER_URL + "/api/detectors").then((res) => res.json()).then((data) => {
       setAvailableDetectors(data as DetBaseType[] ? data as DetBaseType[] : []);
     });
   }, []);
 
   const saveDetectors = (detectors_to_save: DetType[]) => {
     // save detector configs
-    fetch("/api/config/detectors", {
+    fetch(BASE_SERVER_URL + "/api/config/detectors", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -39,7 +40,7 @@ export default function Home() {
 
   const makeNewDetector = async (detector: DetType) => {
     // make new detector
-    const res = await fetch("/api/new-detector", {
+    const res = await fetch(BASE_SERVER_URL + "/api/new-detector", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
