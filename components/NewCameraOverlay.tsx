@@ -29,9 +29,7 @@ export const NewCameraOverlay = ({ onBack }: { onBack: () => void }) => {
     }
 
     return (
-        // <div className="bg-blend-darken w-full h-full absolute backdrop-blur-lg top-0 left-0 flex place-items-center justify-center">
         <div className="bg-blend-darken w-full h-full absolute backdrop-blur-lg top-0 left-0 flex pt-20 place-items-start justify-center">
-            {/* <div className="bg-white w-1/2 h-3/4 shadow-lg rounded-lg py-10 px-20 relative"> */}
             <div className="bg-white w-1/2 shadow-lg rounded-lg py-10 px-20 relative">
                 <button className="absolute top-0 -left-16 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-lg" onClick={() => onBack()} >
                     <ArrowLeftIcon className="h-8 w-8" />

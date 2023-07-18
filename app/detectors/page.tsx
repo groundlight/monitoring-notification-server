@@ -94,7 +94,6 @@ export default function Home() {
           if (e.isNewDetector) {
             const id = await makeNewDetector(e.detector);
             if (id === "Failed") {
-              // TODO: delete just created det
               setShowEditOverlay(false);
               let detectors_copy = [...detectors];
               detectors_copy.splice(editOverlayIndex, 1);

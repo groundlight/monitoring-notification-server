@@ -5,7 +5,6 @@ import { ArrowDownIcon, ArrowUpIcon } from "@heroicons/react/24/outline"
 
 export const Dropdown = ({ options, selected, setSelected, valid, onChange }:
     { options: any[], selected: string, setSelected: (e: string, idx: number) => void, valid?: boolean, onChange?: (open: boolean) => void }
-    // { options: string[], selected: string, setSelected: (e: string, idx: number) => void, valid?: boolean }
 ) => {
     const [open, setOpen] = useState<boolean>(false);
 
