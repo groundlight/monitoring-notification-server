@@ -9,9 +9,9 @@ export const NewCameraOverlay = ({ onBack }: { onBack: () => void }) => {
     const [name, setName] = useState<string>("");
     const [rtspURL, setRtspURL] = useState<string>("");
 
-    const makeNewImageSource = () => {
+    const makeNewImageSource = async () => {
         if (srcType == "RTSP Feed") {
-            fetch("/api/cameras/new", {
+            await fetch("/api/cameras/new", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -58,8 +58,8 @@ export const NewCameraOverlay = ({ onBack }: { onBack: () => void }) => {
                         </div>
                     }
                     <div className="p-10"></div>
-                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded absolute bottom-5 right-5" onClick={() => {
-                        makeNewImageSource();
+                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded absolute bottom-5 right-5" onClick={ async () => {
+                        await makeNewImageSource();
                         onBack();
                     }} >
                         Add Image Source

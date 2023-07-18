@@ -6,7 +6,6 @@ import json
 import yaml
 import groundlight
 import pydantic
-# from api.gl_process import Detector as GLDetector
 from api.gl_process import run_process
 import framegrab
 from framegrab import FrameGrabber
@@ -46,6 +45,19 @@ def get_base64_img(g: FrameGrabber) -> str | None:
         # g.release()
         return None
 
+def fetch_config() -> dict:
+    with open("./api/gl_config.json", "r") as f:
+        return json.load(f)
+
+def store_config(config: dict):
+    with open("./api/gl_config.json", "w") as f:
+        json.dump(config, f, indent=4)
+
+def set_in_config(params: dict):
+    config = fetch_config()
+    for k, v in params.items():
+        config[k] = v
+    store_config(config)
 
 def start_processes(api_key, endpoint, detectors):
     app.DETECTOR_CONFIG = {
@@ -90,19 +102,18 @@ def make_grabbers():
             print(f"Failed to create framegrabber for {d['name']}")
     
     return grabbers
+    # return framegrab.FrameGrabber.create_grabbers(fetch_config()["image_sources"]).values()
 
 print("Loading config...")
 try:
-    with open("./api/gl_config.json", "r") as f:
-        config = json.load(f)
+    config = fetch_config()
     detectors = config["detectors"] if "detectors" in config else []
     api_key = config["api_key"] if "api_key" in config else None
     endpoint = config["endpoint"] if "endpoint" in config else None
 except:
     print("Failed to load config")
     app.DETECTOR_PROCESSES = []
-    with open("./api/gl_config.json", "w") as f:
-        json.dump({}, f, indent=4)
+    store_config({})
 
 try:
     start_processes(api_key, endpoint, detectors)
@@ -115,31 +126,27 @@ app.ALL_GRABBERS: List[FrameGrabber] = make_grabbers()
 
 @app.get("/api/config")
 def get_config():
-    with open("./api/gl_config.json", "r") as f:
-        return json.load(f)
+    return fetch_config()
     
 @app.get("/api/config-json-pretty")
 def get_config_json_pretty():
-    with open("./api/gl_config.json", "r") as f:
-        config = json.load(f)
-        if "detectors" in config:
-            for d in config["detectors"]:
-                del d["config"]["image"]
-        return json.dumps(config, indent=4)
+    config = fetch_config()
+    if "detectors" in config:
+        for d in config["detectors"]:
+            del d["config"]["image"]
+    return json.dumps(config, indent=4)
 
 @app.get("/api/config-yaml-pretty")
 def get_config_json_pretty():
-    with open("./api/gl_config.json", "r") as f:
-        config = json.load(f)
-        if "detectors" in config:
-            for d in config["detectors"]:
-                del d["config"]["image"]
-        return yaml.dump(config, indent=4)
+    config = fetch_config()
+    if "detectors" in config:
+        for d in config["detectors"]:
+            del d["config"]["image"]
+    return yaml.dump(config, indent=4)
     
 @app.get("/api/detectors")
 def get_detectors():
-    with open("./api/gl_config.json", "r") as f:
-        config = json.load(f)
+    config = fetch_config()
     api_key = config["api_key"] if "api_key" in config else None
     endpoint = config["endpoint"] if "endpoint" in config else None
     # TODO: use this as default gl
@@ -151,8 +158,7 @@ def get_detectors():
     
 @app.post("/api/new-detector")
 def make_new_detector(detector: Detector):
-    with open("./api/gl_config.json", "r") as f:
-        config = json.load(f)
+    config = fetch_config()
     api_key = config["api_key"] if "api_key" in config else None
     endpoint = config["endpoint"] if "endpoint" in config else None
     # TODO: use this as default gl
@@ -165,8 +171,7 @@ def make_new_detector(detector: Detector):
 
 @app.post("/api/config/detectors")
 async def post_detectors(detectors: DetectorList):
-    with open("./api/gl_config.json", "r") as f:
-        config = json.load(f)
+    config = fetch_config()
     config["detectors"] = json.loads(detectors.json())["detectors"]
     endpoint = config["endpoint"] if "endpoint" in config else None
     api_key = config["api_key"] if "api_key" in config else None
@@ -183,9 +188,7 @@ async def post_detectors(detectors: DetectorList):
         print("Failed to start processes")
         pass
 
-    # save config
-    with open("./api/gl_config.json", "w") as f:
-        json.dump(config, f, indent=4)
+    store_config(config)
     return config
 
 class ApiKey(pydantic.BaseModel):
@@ -193,21 +196,13 @@ class ApiKey(pydantic.BaseModel):
 
 @app.post("/api/config/api_key")
 def post_api_key(key: ApiKey):
-    with open("./api/gl_config.json", "r") as f:
-        config = json.load(f)
-    config["api_key"] = key.api_key
-    with open("./api/gl_config.json", "w") as f:
-        json.dump(config, f, indent=4)
-    return config
+    set_in_config({"api_key": key.api_key})
 
 @app.post("/api/refresh-camera")
 def refresh_camera(config: dict):
     for g in app.ALL_GRABBERS:
         if g.config == config:
             return {"config": config, "image": get_base64_img(g)}
-            # try:
-            # except:
-            #     return {"config": config, "image": None}
         
     return None
 
@@ -219,11 +214,18 @@ def get_cameras():
 def autodetect_cameras():
     new_grabbers: List[FrameGrabber] = framegrab.FrameGrabber.autodiscover().values()
     app.ALL_GRABBERS.extend(new_grabbers)
+    set_in_config({"image_sources": list(map(lambda g: g.config, app.ALL_GRABBERS))})
 
 @app.post("/api/cameras/new")
 def make_camera(config: dict):
     grabber = framegrab.FrameGrabber.create_grabber(config)
     app.ALL_GRABBERS.append(grabber)
+    set_in_config({"image_sources": list(map(lambda g: g.config, app.ALL_GRABBERS))})
+
+@app.get("/api/finished_intro")
+def intro_finished():
+    set_in_config({"intro_sequence_finished": True})
+    return "Ok"
 
 async def test():
     while True:
@@ -233,6 +235,8 @@ async def test():
                 app.DETECTOR_GRAB_NOTIFY_QUEUES[i].get_nowait()
                 d = app.DETECTOR_CONFIG["detectors"][i]
                 vid_config = d["config"]["vid_config"]
+                # img = app.ALL_GRABBERS[d["config"]["imgsrc_idx"]].grab()
+                # app.DETECTOR_PHOTO_QUEUES[i].put(img)
                 for g in app.ALL_GRABBERS:
                     if g.config == vid_config:
                         app.DETECTOR_PHOTO_QUEUES[i].put(g.grab())

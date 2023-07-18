@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dropdown } from "./Dropdown";
 import { CameraSetupOverlay } from "./CameraSetupOverlay";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { CameraDropdown } from "./CameraDropdown";
 
 export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDelete, onBack }:
     { detector: DetType, detectors: DetBaseType[], index: number, onSave: (e: { detector: DetType, isNewDetector: boolean, index: number }) => void, onDelete: (e: any) => void, onBack: () => void }
@@ -16,6 +17,7 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
     const [pinActiveState, setPinActiveState] = useState<number | undefined>(detector.config.pin_active_state);
     const [selectCamera, setSelectCamera] = useState<boolean>(false);
     const [vidConfig, setVidConfig] = useState<CameraConfigType>(detector.config.vid_config);
+    const [imgSrcIdx, setImgSrcIdx] = useState<number>(0);
     const [image, setImage] = useState<string>(detector.config.image);
     const [detectorEnabled, setDetectorEnabled] = useState<boolean>(detector.config.enabled);
 
@@ -53,7 +55,6 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                             <> {/* existing detector */}
                                 <div className="flex gap-2">
                                     <div className="font-bold place-self-center">Detector Name:</div>
-                                    {/* <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} /> */}
                                     <Dropdown options={detectors.map((detector) => detector.name)} selected={name} setSelected={(e, idx) => {
                                         setName(e);
                                         setQuery(detectors[idx].query);
@@ -62,8 +63,6 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                                 </div>
                                 <div className="flex gap-2">
                                     <div className="font-bold  place-self-center">Detector Query:</div>
-                                    {/* <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="text" placeholder="Query" value={query} onChange={(e) => setQuery(e.target.value)} /> */}
-                                    {/* <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="text" placeholder="Query" value={query} onChange={(e) => {}} /> */}
                                     <div className="border-2 border-gray-300 rounded-md p-2 w-full"><div className="pt-0.5">{query}</div></div>
                                 </div>
                             </>
@@ -74,12 +73,13 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                         <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto" onClick={() => setSelectCamera(true)} >
                             Select
                         </button>
+                        {/* <CameraDropdown /> */}
                     </div>
                     <img src={`data:image/jpeg;base64,${image}`} width={640} height={480} alt={name} className="w-3/4 place-self-center" />
 
                     {
                         selectCamera &&
-                        <CameraSetupOverlay back={() => setSelectCamera(false)} onSelect={(cam) => handleCameraSelect(cam)} /> // TODO: onSelect
+                        <CameraSetupOverlay back={() => setSelectCamera(false)} onSelect={(cam) => handleCameraSelect(cam)} />
                     }
 
                     <div className="flex gap-2">
@@ -113,7 +113,6 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                 </div>
                 <div className="p-8"></div>
                 <button className={`${isDetectorValid ? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500"} text-white font-bold py-2 px-4 rounded absolute bottom-2 right-2`} disabled={!isDetectorValid} onClick={() => {
-                    // if (id === "") return;
                     onSave({
                     detector: {
                         name,
@@ -121,6 +120,7 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                         id,
                         config: {
                             enabled: detectorEnabled,
+                            imgsrc_idx: 0,
                             vid_config: vidConfig,
                             image: image,
                             trigger_type: triggerType,

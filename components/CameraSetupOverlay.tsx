@@ -27,14 +27,9 @@ export const CameraSetupOverlay = ({ onSelect, back }: { onSelect?: (cam: Camera
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(camera_config)
-            // body: JSON.stringify({
-            //     camera_config: camera_config
-            // })
         }).then((res) => res.json()).then((data) => {
             if (!cameras) return;
             const cameras_copy = cameras.slice();
-            // const camera_index = cameras_copy.findIndex((camera) => camera.config === camera_config);
-            // if (camera_index === -1) return;
             if (!(cameras[idx].config === camera_config)) return;
             cameras_copy[idx].image = data.image;
             setCameras(cameras_copy);
@@ -48,19 +43,19 @@ export const CameraSetupOverlay = ({ onSelect, back }: { onSelect?: (cam: Camera
 
     return (
         // <div className="flex flex-col items-center shadow-md bg-white rounded-md p-5 fixed top-20 w-full left-0">
-        <div className="flex flex-col items-center p-5 fixed top-20 w-full left-0 z-50">
-            <div className="flex flex-col items-center shadow-md bg-white rounded-md p-5 relative w-1/2">
-                <button className="absolute top-0 -left-12 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" onClick={() => back && back()} >
+        // <div className="bg-blend-darken w-full h-full fixed backdrop-blur-lg top-0 left-0 flex pt-20 place-items-start justify-center" >
+        <div className="flex flex-col items-center p-5 fixed top-10 w-[150%] -left-60 z-50">
+            <div className="flex flex-col items-center shadow-md bg-white rounded-md p-5 relative w-1/2 overflow-y-scroll">
+                <button className="absolute top-0 -left-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md z-51" onClick={() => back && back()} >
                     <ArrowLeftIcon className="h-5 w-5" />
                 </button>
 
-                <Spinner hidden={cameras !== undefined} />
-
-                <div className="p-4"></div>
                 {/* list cameras */}
-                <div className="flex flex-col gap-2">
+                {/* <div className="flex flex-col gap-2 h-[500px]"> */}
+                <div className="flex flex-col gap-2 h-[600px] relative">
                     <div className="font-bold">Cameras:</div>
-                    <div className="flex flex-row flex-wrap gap-4">
+                    <Spinner hidden={cameras !== undefined} />
+                    <div className="flex flex-row flex-wrap gap-4 w-full place-content-center">
                         {cameras && cameras.map((camera, index) => (
                             <div key={index} className="w-60 flex flex-col shadow-xl rounded-md p-5">
                                 <div className="relative m-1">
@@ -78,6 +73,7 @@ export const CameraSetupOverlay = ({ onSelect, back }: { onSelect?: (cam: Camera
                             </div>
                         ))}
                     </div>
+                    <div className="p-5"></div>
                 </div>
             </div>
         </div>

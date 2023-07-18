@@ -54,7 +54,7 @@ export default function VideoPage() {
             headers: {
                 "Content-Type": "application/json"
             },
-        }).then(_ => fetchCameras());
+        }).then(() => fetchCameras());
     }
 
     return (
@@ -102,7 +102,10 @@ export default function VideoPage() {
             </div>
             {
                 addCameraOverlayOpen &&
-                <NewCameraOverlay onBack={() => setAddCameraOverlayOpen(false)} />
+                <NewCameraOverlay onBack={() => {
+                    setAddCameraOverlayOpen(false);
+                    fetchCameras();
+                }} />
             }
         </main>
     );
