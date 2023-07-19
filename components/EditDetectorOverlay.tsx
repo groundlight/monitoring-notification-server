@@ -70,20 +70,6 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                     }
 
                     <div className="flex gap-2">
-                        <div className="font-bold  place-self-center">Video Source:</div>
-                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto" onClick={() => setSelectCamera(true)} >
-                            Select
-                        </button>
-                        {/* <CameraDropdown /> */}
-                    </div>
-                    <img src={`data:image/jpeg;base64,${image}`} width={640} height={480} alt={name} className="w-3/4 place-self-center" />
-
-                    {
-                        selectCamera &&
-                        <CameraSetupOverlay back={() => setSelectCamera(false)} onSelect={(cam, idx) => handleCameraSelect(cam, idx)} />
-                    }
-
-                    <div className="flex gap-2">
                         <div className="font-bold  place-self-center">Trigger Type:</div>
                         <Dropdown options={["time", "pin", "motion"]} selected={triggerType} setSelected={(e, idx) => setTriggerType(e)} />
                     </div>
@@ -107,10 +93,6 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                             </div>
                         </div>
                     }
-                    <div className="flex gap-2">
-                        <div className="font-bold place-self-center">Detector Enabled:</div>
-                        <input className="border-2 border-gray-300 rounded-md p-2 w-4 ml-auto mr-2" type="checkbox" checked={detectorEnabled} onChange={(e) => setDetectorEnabled(e.target.checked)} />
-                    </div>
                 </div>
                 <div className="p-8"></div>
                 <button className={`${isDetectorValid ? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500"} text-white font-bold py-2 px-4 rounded absolute bottom-2 right-2`} disabled={!isDetectorValid} onClick={() => {
