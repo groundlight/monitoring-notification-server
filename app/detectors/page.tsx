@@ -1,9 +1,8 @@
 "use client"
 
-import { DetectorCard } from "@/components/DetectorCard";
 import { EditDetectorOverlay } from "@/components/EditDetectorOverlay";
 import { BASE_SERVER_URL } from "@/utils/config";
-import { ArrowRightIcon, ArrowUturnDownIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { ArrowRightIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -66,45 +65,19 @@ export default function Home() {
 	return (
 		<main className="flex flex-col items-start px-10 py-5 gap-2 relative h-full">
 			<h1 className="text-3xl font-semibold">Configure your Groundlight Detectors</h1>
-			{/* <div className="flex flex-wrap items-center gap-2 mx-10 my-5">
-				{detectors && detectors.map((detector, index) => (
-					<div className="flex flex-col items-center" key={index}>
-						<DetectorCard detector={detector} index={index} onclick={() => {
-							setEditOverlayIndex(index);
-							setShowEditOverlay(true);
-							setLastButtonWasAdd(false);
-						}} />
-					</div>
-				))}
-			</div> */}
 			<div className="p-2"></div>
 			<div className="bg-white overflow-scroll p-4 rounded-xl min-h-[600px] shadow-md w-full">
 				{detectorsByGroup && detectorsByGroup.map((group, index) => (
 					<div className="flex flex-col items-start" key={index}>
-						{/* <h2 className="text-xl font-semibold">{group[0].name}</h2> */}
-						{/* <div className="grid grid-cols-2 gap-4 w-full bg-white px-4 py-2 rounded border-b-2 border-black"> */}
 						<div className="p-3"></div>
 						<div className="grid grid-cols-2 gap-4 w-full px-4 py-1 border-y-[1px] border-black">
 							<h2 className="text-lg">{group[0].name}</h2>
 							<h2 className="text-lg">{group[0].query}</h2>
 						</div>
-						{/* <div className="flex flex-wrap items-center gap-2 mx-10 my-5">
-							{group.map((detector, index) => (
-								<div className="flex flex-col items-center" key={index}>
-									<DetectorCard detector={detector} index={index} onclick={() => {
-										setEditOverlayIndex(index);
-										setShowEditOverlay(true);
-										setLastButtonWasAdd(false);
-									}} />
-								</div>
-
-							))}
-						</div> */}
 						<div className="flex w-full" key={index}>
 							<h3 className="flex items-start my-3 mx-8">
 								Image Sources
 								<div className="p-1"></div>
-								{/* <ArrowUturnDownIcon className="w-6 h-6 -rotate-90"/> */}
 								<ArrowRightIcon className="w-6 h-6"/>
 							</h3>
 							<div className="p-1 m-auto"></div>
