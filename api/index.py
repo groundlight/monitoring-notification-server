@@ -252,7 +252,19 @@ async def test():
                 app.DETECTOR_PHOTO_QUEUES[i].put(img)
         await asyncio.sleep(1)
 
+import asyncio
+from websockets.server import serve
+
+async def echo(websocket):
+    async for message in websocket:
+        await websocket.send(message)
+
+async def run_websocket():
+    async with serve(echo, "localhost", 8765):
+        await asyncio.Future()  # run forever
+
 @app.on_event("startup")
 async def app_startup():
     loop = asyncio.get_event_loop()
     loop.create_task(test())
+    loop.create_task(run_websocket())
