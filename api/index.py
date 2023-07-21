@@ -2,12 +2,12 @@ from dataclasses import dataclass
 import multiprocessing
 import time
 from typing import List, Union
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 import json
 import yaml
 import groundlight
 import pydantic
-from api.gl_process import run_process
+from api.gl_process import run_process, push_label_result
 import framegrab
 from framegrab import FrameGrabber
 import cv2
@@ -42,7 +42,14 @@ app = FastAPI()
 app.DETECTOR_PROCESSES: List[multiprocessing.Process] = []
 app.DETECTOR_PHOTO_QUEUES: List[multiprocessing.Queue] = []
 app.DETECTOR_GRAB_NOTIFY_QUEUES: List[multiprocessing.Queue] = []
+app.DETECTOR_WEBSOCKET_RESPONSE_QUEUES: List[multiprocessing.Queue] = []
 app.DETECTOR_CONFIG = {}
+app.WEBSOCKET_IMG_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
+app.WEBSOCKET_METADATA_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
+app.WEBSOCKET_CANCEL_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
+app.WEBSOCKET_RESPONSE_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
+# app.WEBSOCKET_RESPONSE_QUEUES: List[multiprocessing.Queue] = []
+# app.WEBSOCKET_RESPONSE_QUEUE
 
 def get_base64_img(g: FrameGrabber) -> Union[str, None]:
     try:
@@ -74,14 +81,20 @@ def start_processes(api_key, endpoint, detectors):
     detectors = list(filter(lambda d: d["config"]["enabled"], detectors))
     app.DETECTOR_PHOTO_QUEUES = [multiprocessing.Queue(1) for _ in detectors]
     app.DETECTOR_GRAB_NOTIFY_QUEUES = [multiprocessing.Queue(1) for _ in detectors]
+    app.DETECTOR_WEBSOCKET_RESPONSE_QUEUES = [multiprocessing.Queue(1) for _ in detectors]
     app.DETECTOR_PROCESSES = []
     for i in range(len(detectors)):
         process = multiprocessing.Process(target=run_process, args=(
+            i,
             detectors[i],
             api_key,
             endpoint,
             app.DETECTOR_GRAB_NOTIFY_QUEUES[i],
             app.DETECTOR_PHOTO_QUEUES[i],
+            # app.WEBSOCKET_IMG_QUEUE,
+            app.WEBSOCKET_METADATA_QUEUE,
+            app.WEBSOCKET_CANCEL_QUEUE,
+            app.DETECTOR_WEBSOCKET_RESPONSE_QUEUES[i],
         ))
         app.DETECTOR_PROCESSES.append(process)
         process.start()
@@ -241,6 +254,7 @@ def intro_finished():
     set_in_config({"intro_sequence_finished": True})
     return "Ok"
 
+# @app.on_event("startup")
 async def test():
     while True:
         for i in range(len(app.DETECTOR_GRAB_NOTIFY_QUEUES)):
@@ -250,21 +264,63 @@ async def test():
                 d = app.DETECTOR_CONFIG["detectors"][i]
                 img = app.ALL_GRABBERS[d["config"]["imgsrc_idx"]].grab()
                 app.DETECTOR_PHOTO_QUEUES[i].put(img)
-        await asyncio.sleep(1)
+        while not app.WEBSOCKET_RESPONSE_QUEUE.empty():
+            res = app.WEBSOCKET_RESPONSE_QUEUE.get()
+            det_id = res["det_id"]
+            det_idx = res["det_idx"]
+            img_idx = res["imgsrc_idx"]
+            if len(app.DETECTOR_CONFIG["detectors"]) < det_idx \
+                and app.DETECTOR_CONFIG["detectors"][det_idx]["id"] == det_id \
+                and app.DETECTOR_CONFIG["detectors"][det_idx]["config"]["imgsrc_idx"] == img_idx:
 
-import asyncio
-from websockets.server import serve
+                app.DETECTOR_WEBSOCKET_RESPONSE_QUEUES[det_idx].put_nowait(res)
 
-async def echo(websocket):
-    async for message in websocket:
-        await websocket.send(message)
-
-async def run_websocket():
-    async with serve(echo, "localhost", 8765):
-        await asyncio.Future()  # run forever
+        await asyncio.sleep(.01)
 
 @app.on_event("startup")
 async def app_startup():
     loop = asyncio.get_event_loop()
     loop.create_task(test())
-    loop.create_task(run_websocket())
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    print("started")
+    
+    # asyncio.create_task(run_websocket(websocket))
+    # asyncio.ensure_future(run_websocket(websocket))
+
+# async def run_websocket(websocket: WebSocket):
+    await websocket.accept()
+
+    config = fetch_config()
+    api_key = config["api_key"] if "api_key" in config else None
+    endpoint = config["endpoint"] if "endpoint" in config else None
+
+    data_task = asyncio.create_task(websocket.receive_json())
+    try:
+        while True:
+            while not app.WEBSOCKET_METADATA_QUEUE.empty():
+                metadata = app.WEBSOCKET_METADATA_QUEUE.get() # get metadata from queue (blocking, wait forever)
+                await websocket.send_json(metadata)
+
+            # check for cancel
+            while not app.WEBSOCKET_CANCEL_QUEUE.empty():
+                cancel_data = app.WEBSOCKET_CANCEL_QUEUE.get()
+                await websocket.send_json(cancel_data)
+
+            # check for response
+            if data_task.done():
+                data = data_task.result()
+                data_copy = data.copy()
+                data_copy["image"] = None
+                print(data_copy)
+                push_label_result(api_key, endpoint, data["query_id"], data["label"])
+                data_task = asyncio.create_task(websocket.receive_json())
+
+            await asyncio.sleep(0.01)
+
+    except Exception as e:
+        print(e)
+    finally:
+        data_task.cancel()
+        await websocket.close()
