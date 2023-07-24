@@ -6,7 +6,7 @@ on: [push, workflow_dispatch]
 # old:  linux/arm/v7, windows/amd64, mac/amd64, mac/arm64
 
 jobs:
-  build:
+  build-frontend:
     name: Build Frontend Image
     runs-on: ubuntu-latest
     steps:
@@ -45,7 +45,7 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
   
-  build:
+  build-backend:
     name: Build Backend Image
     runs-on: ubuntu-latest
     steps:
