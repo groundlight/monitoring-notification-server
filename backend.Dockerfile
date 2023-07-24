@@ -5,8 +5,11 @@ WORKDIR /app
 COPY ./requirements.txt /app/requirements.txt
 
 RUN pip3 install --no-cache-dir --upgrade -r /app/requirements.txt
+RUN pip3 install opencv-python-headless
 
 COPY ./api /app/api
+
+RUN rm /app/api/gl_config.json
 
 EXPOSE 8000
 
