@@ -9,8 +9,6 @@ RUN pip3 install opencv-python-headless
 
 COPY ./api /app/api
 
-RUN rm /app/api/gl_config.json
-
 EXPOSE 8000
 
 CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000"]
