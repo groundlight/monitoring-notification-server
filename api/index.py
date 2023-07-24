@@ -261,7 +261,8 @@ async def test():
             if not app.DETECTOR_GRAB_NOTIFY_QUEUES[i].empty():
                 print("Taking photo")
                 app.DETECTOR_GRAB_NOTIFY_QUEUES[i].get_nowait()
-                d = app.DETECTOR_CONFIG["detectors"][i]
+                # d = app.DETECTOR_CONFIG["detectors"][i]
+                d = list(filter(lambda d: d["config"]["enabled"], app.DETECTOR_CONFIG["detectors"]))[i]
                 img = app.ALL_GRABBERS[d["config"]["imgsrc_idx"]].grab()
                 app.DETECTOR_PHOTO_QUEUES[i].put(img)
         while not app.WEBSOCKET_RESPONSE_QUEUE.empty():
@@ -314,7 +315,11 @@ async def websocket_endpoint(websocket: WebSocket):
                 data_copy = data.copy()
                 data_copy["image"] = None
                 print(data_copy)
-                push_label_result(api_key, endpoint, data["query_id"], data["label"])
+                try:
+                    push_label_result(api_key, endpoint, data["query_id"], data["label"])
+                except Exception as e:
+                    print("Exception while pushing label result:")
+                    print(e)
                 data_task = asyncio.create_task(websocket.receive_json())
 
             await asyncio.sleep(0.01)

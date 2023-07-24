@@ -10,6 +10,7 @@ import ReactSwitch from "react-switch";
 export default function Home() {
 	const [detectors, setDetectors] = useState<DetType[]>([]);
 	const [detectorsByGroup, setDetectorsByGroup] = useState<DetType[][]>([]);
+	const [detectorIndiciesByGroup, setDetectorIndiciesByGroup] = useState<number[][]>([]); // [group index][detector index]
 	const [availableDetectors, setAvailableDetectors] = useState<DetBaseType[]>([]);
 	const [showEditOverlay, setShowEditOverlay] = useState<boolean>(false);
 	const [editOverlayIndex, setEditOverlayIndex] = useState<number>(0);
@@ -17,23 +18,32 @@ export default function Home() {
 	const [imageSources, setImageSources] = useState<CameraType[]>([]);
 	const [camerasWaiting, setCamerasWaiting] = useState<boolean[]>([]); // images that are waiting for a response
 
-	useEffect(() => {
-		// fetch detector configs
-		fetch(BASE_SERVER_URL + "/api/config").then((res) => res.json()).then((data) => {
+	const fetchConfig = async () => {
+		return await fetch(BASE_SERVER_URL + "/api/config").then((res) => res.json()).then((data) => {
 			setDetectors(data.detectors as DetType[] ? data.detectors as DetType[] : []);
 			if (data?.detectors) {
-				const detByGroup = (data.detectors as DetType[]).reduce((acc: DetType[][], cur: DetType) => {
+				const detIdxByGroup: number[][] = [];
+				const detByGroup = (data.detectors as DetType[]).reduce((acc: DetType[][], cur: DetType, old_idx: number) => {
 					const idx = acc.reduce((pre: number, group: DetType[], idx) => group[0].name === cur.name ? idx : pre, -1);
 					if (idx !== -1) {
 						acc[idx].push(cur);
+						detIdxByGroup[idx].push(old_idx);
 					} else {
 						acc.push([cur]);
+						detIdxByGroup.push([old_idx]);
 					}
 					return acc;
 				}, []);
+				setDetectorIndiciesByGroup(detIdxByGroup);
 				setDetectorsByGroup(detByGroup);
 			}
+			return data;
 		});
+	}
+
+	useEffect(() => {
+		// fetch detector configs
+		void fetchConfig();
 
 		// fetch available image sources
 		fetch(BASE_SERVER_URL + "/api/cameras").then((res) => res.json()).then((data) => {
@@ -58,21 +68,7 @@ export default function Home() {
 				detectors: detectors_to_save,
 			}),
 		}).then(() => {
-			fetch(BASE_SERVER_URL + "/api/config").then((res) => res.json()).then((data) => {
-				setDetectors(data.detectors as DetType[] ? data.detectors as DetType[] : []);
-				if (data?.detectors) {
-					const detByGroup = (data.detectors as DetType[]).reduce((acc: DetType[][], cur: DetType) => {
-						const idx = acc.reduce((pre: number, group: DetType[], idx) => group[0].name === cur.name ? idx : pre, -1);
-						if (idx !== -1) {
-							acc[idx].push(cur);
-						} else {
-							acc.push([cur]);
-						}
-						return acc;
-					}, []);
-					setDetectorsByGroup(detByGroup);
-				}
-			});
+			void fetchConfig();
 		});
 	};
 
@@ -84,7 +80,11 @@ export default function Home() {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify(detector),
-		}).then((res) => res.json());
+		})
+			.then((res) => res.json());
+		
+		void fetchConfig();
+
 		return res;
 	}
 
@@ -100,10 +100,10 @@ export default function Home() {
 		saveDetectors(detectors_copy);
 	}
 
-	const changeDetectorEnabled = (detector: DetType, enabled: boolean) => {
+	const changeDetectorEnabled = (det_idx: number, enabled: boolean) => {
 		// change detector enabled
-		const det_idx = detectors.findIndex((det) => det == detector);
-		if (det_idx === -1) return;
+		// const det_idx = detectors.findIndex((det) => det == detector);
+		// if (det_idx === -1) return;
 		let detectors_copy = [...detectors];
 		detectors_copy[det_idx].config.enabled = enabled;
 		setDetectors(detectors_copy);
@@ -212,29 +212,30 @@ export default function Home() {
 			</div>
 			<div className="p-1"></div>
 			<div className="bg-white overflow-scroll p-4 rounded-xl min-h-[600px] shadow-md w-full">
-				{detectorsByGroup && detectorsByGroup.map((group, index) => (
-					<div className="flex flex-col items-start" key={index}>
+				{detectorsByGroup && detectorsByGroup.map((group, indexA) => (
+					<div className="flex flex-col items-start" key={indexA}>
 						<div className="p-1"></div>
 						<div className="grid grid-cols-2 gap-4 w-full px-4 py-1 border-y-[1px] border-black">
 							<h2 className="text-lg">{group[0].name}</h2>
 							<h2 className="text-lg">{group[0].query}</h2>
 						</div>
-						{group.map((detector, index) => (
-							<div className="mx-2 my-1 relative grid grid-cols-[200px,100px,1fr,100px] grid-rows-1 gap-4 w-full" key={index}>
+						{group.map((detector, indexB) => (
+							<div className="mx-2 my-1 relative grid grid-cols-[200px,100px,1fr,100px] grid-rows-1 gap-4 w-full" key={indexB}>
 								<div className="relative inline-block">
 									{
 										detector.config.image != "" ?
-										<img src={`data:image/jpeg;base64,${detector.config.image}`} key={index} alt={detector.name} className="w-full rounded-lg" />
+										<img src={`data:image/jpeg;base64,${detector.config.image}`} key={indexB} alt={detector.name} className="w-full rounded-lg" />
 									:
 										<div className="w-full rounded-lg bg-red-400 h-32" />
 									}
-									<button>
+									{/* <button>
 										<Cog6ToothIcon className="absolute top-0 right-0 w-8 h-8 rounded-md backdrop-blur-xl backdrop-brightness-150" onClick={() => {
+											const index = detectorIndiciesByGroup[indexA][indexB];
 											setEditOverlayIndex(index);
 											setShowEditOverlay(true);
 											setLastButtonWasAdd(false);
 										}} />
-									</button>
+									</button> */}
 									<button className="bg-blue-500 hover:bg-blue-700ab absolute top-0 left-0 rounded-md px-2 py-1 text-white font-bold" onClick={() => {
 										refreshDetectorImg(detector.config.imgsrc_idx, detector);
 									}}>
@@ -252,9 +253,11 @@ export default function Home() {
 									}} />
 								</div>
 								<div className="flex flex-col place-items-center justify-center">
-									<div className="font-bold place-self-center">Enabled?</div>
+									{/* <div className="font-bold place-self-center">Enabled?</div> */}
+									<div className="font-bold place-self-center text-center mb-2">Condition Running?</div>
 									<ReactSwitch checked={detector.config.enabled} onChange={(checked) => {
-										changeDetectorEnabled(detector, checked);
+										const index = detectorIndiciesByGroup[indexA][indexB];
+										changeDetectorEnabled(index, checked);
 									}} />
 								</div>
 								<div className="flex flex-col justify-center h-full relative w-64">
@@ -273,6 +276,7 @@ export default function Home() {
 								</div> */}
 								<div className="w-full h-full flex flex-col place-items-center justify-center gap-4">
 								<button className="flex place-items-center rounded-md backdrop-blur-xl backdrop-brightness-150 text-lg px-4 py-2 border-2 border-gray-300 bg-gray-200 hover:bg-gray-300 text-gray-600" onClick={() => {
+										const index = detectorIndiciesByGroup[indexA][indexB];
 										setEditOverlayIndex(index);
 										setShowEditOverlay(true);
 										setLastButtonWasAdd(false);
@@ -288,7 +292,7 @@ export default function Home() {
 							</div>
 						))}
 						{/* add source */}
-						<div className="mx-2 my-1 relative grid grid-cols-[200px,1fr,1fr,1fr] grid-rows-1 h-20 gap-4" key={index}>
+						<div className="mx-2 my-1 relative grid grid-cols-[200px,1fr,1fr,1fr] grid-rows-1 h-20 gap-4" key={indexA}>
 							<div className="relative inline-block">
 								<button className="w-full rounded-lg border-2 bg-gray-200 border-gray-300 text-gray-400 hover:bg-gray-300 h-full flex items-center justify-center" onClick={() => {
 									setShowEditOverlay(true);
