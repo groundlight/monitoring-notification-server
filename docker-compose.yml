@@ -1,0 +1,13 @@
+services:
+  frontend:
+    # image: edge_client_frontend
+    image: docker.io/maxatgroundlight/groundlight-edge-client-frontend:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+  backend:
+    # image: edge_client_backend
+    image: docker.io/maxatgroundlight/groundlight-edge-client-backend:latest
+    ports:
+      - "8000:8000"
