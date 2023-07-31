@@ -44,12 +44,9 @@ app.DETECTOR_PHOTO_QUEUES: List[multiprocessing.Queue] = []
 app.DETECTOR_GRAB_NOTIFY_QUEUES: List[multiprocessing.Queue] = []
 app.DETECTOR_WEBSOCKET_RESPONSE_QUEUES: List[multiprocessing.Queue] = []
 app.DETECTOR_CONFIG = {}
-app.WEBSOCKET_IMG_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
 app.WEBSOCKET_METADATA_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
 app.WEBSOCKET_CANCEL_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
 app.WEBSOCKET_RESPONSE_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
-# app.WEBSOCKET_RESPONSE_QUEUES: List[multiprocessing.Queue] = []
-# app.WEBSOCKET_RESPONSE_QUEUE
 
 def get_base64_img(g: FrameGrabber) -> Union[str, None]:
     try:
@@ -91,7 +88,6 @@ def start_processes(api_key, endpoint, detectors):
             endpoint,
             app.DETECTOR_GRAB_NOTIFY_QUEUES[i],
             app.DETECTOR_PHOTO_QUEUES[i],
-            # app.WEBSOCKET_IMG_QUEUE,
             app.WEBSOCKET_METADATA_QUEUE,
             app.WEBSOCKET_CANCEL_QUEUE,
             app.DETECTOR_WEBSOCKET_RESPONSE_QUEUES[i],
@@ -116,23 +112,33 @@ def make_grabbers():
 
     return grabbers
 
-print("Loading config...")
-try:
-    config = fetch_config()
-    detectors = config["detectors"] if "detectors" in config else []
-    api_key = config["api_key"] if "api_key" in config else None
-    endpoint = config["endpoint"] if "endpoint" in config else None
-except:
-    print("Failed to load config")
-    app.DETECTOR_PROCESSES = []
-    store_config({})
+def startup():
+    print("Loading config...")
+    try:
+        config = fetch_config()
+        detectors = config["detectors"] if "detectors" in config else []
+        api_key = config["api_key"] if "api_key" in config else None
+        endpoint = config["endpoint"] if "endpoint" in config else None
+    except:
+        print("Failed to load config")
+        app.DETECTOR_PROCESSES = []
+        store_config({})
 
-try:
-    start_processes(api_key, endpoint, detectors)
-except:
-    print("Failed to start processes")
+    try:
+        start_processes(api_key, endpoint, detectors)
+    except:
+        print("Failed to start processes")
 
-app.ALL_GRABBERS: List[FrameGrabber] = make_grabbers()
+    app.ALL_GRABBERS: List[FrameGrabber] = make_grabbers()
+
+    if detectors:
+        for d in detectors:
+            if "imgsrc_idx" in d["config"] and "image" not in d["config"] and d["config"]["imgsrc_idx"] != "-1":
+                img = get_base64_img(app.ALL_GRABBERS[d["config"]["imgsrc_idx"]])
+                if img:
+                    d["config"]["image"] = img
+
+startup()
 
 ###################### the api #######################
 
@@ -145,7 +151,8 @@ def get_config_json_pretty():
     config = fetch_config()
     if "detectors" in config:
         for d in config["detectors"]:
-            del d["config"]["image"]
+            if "image" in d["config"]:
+                del d["config"]["image"]
     return json.dumps(config, indent=4)
 
 @app.get("/api/config-yaml-pretty")
@@ -153,7 +160,8 @@ def get_config_json_pretty():
     config = fetch_config()
     if "detectors" in config:
         for d in config["detectors"]:
-            del d["config"]["image"]
+            if "image" in d["config"]:
+                del d["config"]["image"]
     return yaml.dump(config, indent=4)
     
 @app.get("/api/detectors")
@@ -254,14 +262,31 @@ def intro_finished():
     set_in_config({"intro_sequence_finished": True})
     return "Ok"
 
-# @app.on_event("startup")
-async def test():
+@app.post("/api/set_config")
+def set_config_post_method(config_str: dict):
+    if "config" not in config_str:
+        return "Failed"
+
+    try:
+        config = json.loads(config_str["config"])
+        set_in_config(config)
+        startup()
+    except:
+        try:
+            config = yaml.safe_load(config_str["config"])
+            set_in_config(config)
+            startup()
+        except:
+            return "Failed"
+    
+    return "Ok"
+
+async def websocket_queue_runner():
     while True:
         for i in range(len(app.DETECTOR_GRAB_NOTIFY_QUEUES)):
             if not app.DETECTOR_GRAB_NOTIFY_QUEUES[i].empty():
                 print("Taking photo")
                 app.DETECTOR_GRAB_NOTIFY_QUEUES[i].get_nowait()
-                # d = app.DETECTOR_CONFIG["detectors"][i]
                 d = list(filter(lambda d: d["config"]["enabled"], app.DETECTOR_CONFIG["detectors"]))[i]
                 img = app.ALL_GRABBERS[d["config"]["imgsrc_idx"]].grab()
                 app.DETECTOR_PHOTO_QUEUES[i].put(img)
@@ -281,16 +306,11 @@ async def test():
 @app.on_event("startup")
 async def app_startup():
     loop = asyncio.get_event_loop()
-    loop.create_task(test())
+    loop.create_task(websocket_queue_runner())
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     print("started")
-    
-    # asyncio.create_task(run_websocket(websocket))
-    # asyncio.ensure_future(run_websocket(websocket))
-
-# async def run_websocket(websocket: WebSocket):
     await websocket.accept()
 
     config = fetch_config()
