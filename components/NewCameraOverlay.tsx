@@ -20,7 +20,7 @@ export const NewCameraOverlay = ({ onBack }: { onBack: () => void }) => {
                 body: JSON.stringify({
                     name: name,
                     input_type: "rtsp",
-                    address: {
+                    id: {
                         rtsp_url: rtspURL
                     }
                 })

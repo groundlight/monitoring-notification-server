@@ -4,6 +4,7 @@ import time
 from typing import List, Union
 from fastapi import FastAPI, WebSocket
 import json
+from fastapi.websockets import WebSocketState
 import yaml
 import groundlight
 import pydantic
@@ -350,4 +351,5 @@ async def websocket_endpoint(websocket: WebSocket):
         print(e)
     finally:
         data_task.cancel()
-        await websocket.close()
+        if websocket.application_state != WebSocketState.DISCONNECTED:
+            await websocket.close()
