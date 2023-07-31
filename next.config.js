@@ -8,10 +8,7 @@ const nextConfig = {
           process.env.NODE_ENV === "development"
             // ? "http://127.0.0.1:8000/api/:path*"
             ? "http://0.0.0.0:8000/api/:path*"
-            : (
-                process.env.BACKEND_URL_SUBSTITUTION ?
-                  process.env.BACKEND_URL_SUBSTITUTION
-                    : "http://host.docker.internal:8000/api/:path*"),
+            : ("http://172.17.0.1:8000/api/:path*"),
             // : "/api/",
       },
     ];
