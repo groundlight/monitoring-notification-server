@@ -50,7 +50,7 @@ app.WEBSOCKET_RESPONSE_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
 
 def get_base64_img(g: FrameGrabber) -> Union[str, None]:
     try:
-        return base64.b64encode(cv2.imencode(".jpg", g.grab())[1])
+        return base64.b64encode(cv2.imencode(".jpg", g.grab())[1]).decode("utf-8")
     except:
         # g.release()
         return None
@@ -131,12 +131,14 @@ def startup():
 
     app.ALL_GRABBERS: List[FrameGrabber] = make_grabbers()
 
-    if detectors:
+    try:
         for d in detectors:
             if "imgsrc_idx" in d["config"] and "image" not in d["config"] and d["config"]["imgsrc_idx"] != "-1":
                 img = get_base64_img(app.ALL_GRABBERS[d["config"]["imgsrc_idx"]])
                 if img:
                     d["config"]["image"] = img
+    except:
+        print("Failed to load images")
 
 startup()
 
