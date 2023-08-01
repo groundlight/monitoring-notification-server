@@ -5,9 +5,9 @@ from uuid import uuid4
 import cv2
 import groundlight
 import multiprocessing
+from api.notifications import send_notifications
 
 def frame_to_base64(frame) -> str:
-    # return str(base64.b64encode(cv2.imencode(".jpg", frame)[1]))
     #  encode image as jpeg
     _, buffer = cv2.imencode('.jpg', frame)
     #  encode the image as base64
@@ -54,7 +54,6 @@ def run_process(idx: int, detector: dict, api_key: str, endpoint: str,
         if detector["config"]["cycle_time"] < poll_delay:
             poll_delay = detector["config"]["cycle_time"]
         cycle_time = detector["config"]["cycle_time"]
-        # delay = lambda: time.sleep(detector["config"]["cycle_time"])
     elif trigger_type == "pin":
         # TODO: implement
         raise ValueError(f"Trigger type [{trigger_type}] not yet supported.")
@@ -64,8 +63,6 @@ def run_process(idx: int, detector: dict, api_key: str, endpoint: str,
     else:
         raise ValueError(f"Invalid trigger type: {trigger_type}")
     
-    # if "endpoint" in detector and detector.endpoint is not None:
-    #     endpoint = detector.endpoint
     gl = groundlight.Groundlight(api_token=api_key, endpoint=endpoint)
     det = gl.get_detector(detector["id"])
     conf = det.confidence_threshold if det.confidence_threshold is not None else 0.9
@@ -80,8 +77,6 @@ def run_process(idx: int, detector: dict, api_key: str, endpoint: str,
             print("No frame received from queue.")
             continue
         uuid = uuid4().hex
-
-        # websocket_metadata_queue.put(detector)
 
         # send to groundlight
         query = gl.submit_image_query(det, frame, 0) # default wait is 30s
@@ -103,7 +98,7 @@ def run_process(idx: int, detector: dict, api_key: str, endpoint: str,
         # poll for result until timeout
         while should_continue():
             query = gl.get_image_query(query.id)
-            if (query.result.confidence is not None and query.result.confidence > conf and not has_cancelled) or (query.result.confidence is None and query.result.label is not None and query.result.label != "QUERY_FAIL" and not has_cancelled):
+            if not has_cancelled and ((query.result.confidence is not None and query.result.confidence > conf) or (query.result.confidence is None and query.result.label is not None and query.result.label != "QUERY_FAIL" )):
                 websocket_cancel_queue.put({
                     "cancel": True,
                     "confidence": query.result.confidence,
@@ -116,30 +111,14 @@ def run_process(idx: int, detector: dict, api_key: str, endpoint: str,
                     "label": query.result.label,
                 })
                 has_cancelled = True
+                if "notifications" in detector:
+                    send_notifications(detector["name"], detector["query"], query.result.label, detector["notifications"], frame)
             delay()
         
         retry_time = time.time() + cycle_time
-
-        # wait for next cycle
-        # delay()
-        # if not websocket_response_queue.empty():
-        #     res = websocket_response_queue.get()
-        #     label: str = res["label"].upper()
-        #     res_uuid: str = res["uuid"]
-        #     if res_uuid == uuid:
-        #         if label == "YES" or label == "NO":
-        #             gl.add_label(query, label)
-        #         elif label == "PASS":
-        #             gl.add_label(query, "YES")
-        #         elif label == "FAIL":
-        #             gl.add_label(query, "NO")
-        #         else:
-        #             print(f"Invalid response: {label}")
-        #     else:
-        #         print(f"UUID mismatch: {res_uuid} != {uuid}")
-
-        # query = gl.get_image_query(query.id)d
+        
         if not has_cancelled:
+            # Cancel previous query if it hasn't been cancelled yet
             websocket_cancel_queue.put({
                 "cancel": True,
                 "confidence": query.result.confidence,
@@ -149,5 +128,4 @@ def run_process(idx: int, detector: dict, api_key: str, endpoint: str,
                 "det_query": detector["query"],
                 "det_idx": idx,
                 "imgsrc_idx": detector["config"]["imgsrc_idx"],
-                # "label": query.result.label,
             })

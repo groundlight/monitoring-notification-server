@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import multiprocessing
 import time
-from typing import List, Union
+from typing import List, Optional, Union
 from fastapi import FastAPI, WebSocket
 import json
 from fastapi.websockets import WebSocketState
@@ -15,6 +15,8 @@ import cv2
 import base64
 import asyncio
 
+from api.notifications import send_notifications
+
 class Config(pydantic.BaseModel):
     enabled: bool
     imgsrc_idx: int
@@ -24,6 +26,7 @@ class Config(pydantic.BaseModel):
     cycle_time: Union[int, None]
     pin: Union[int, None]
     pin_active_state: Union[int, None]
+    notifications: Optional[dict]
 
 class Detector(pydantic.BaseModel):
     name: str
