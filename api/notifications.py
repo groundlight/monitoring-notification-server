@@ -90,7 +90,7 @@ def send_slack(det_name: str, query: str, label: str, options: dict):
         channel=options["channel_id"],
         text=f"Your detector [{det_name}] returned a \"{label}\" result to the query [{query}]."
     )
-    assert response["message"]["text"] == f"Your detector [{det_name}] returned a \"{label}\" result."
+    # assert response["message"]["text"] == f"Your detector [{det_name}] returned a \"{label}\" result."
 
 def post_to_stacklight(det_name: str, query: str, label: str, options: dict):
     if "ip" not in options:

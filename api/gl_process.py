@@ -112,7 +112,10 @@ def run_process(idx: int, detector: dict, api_key: str, endpoint: str,
                 })
                 has_cancelled = True
                 if "notifications" in detector:
-                    send_notifications(detector["name"], detector["query"], query.result.label, detector["notifications"], frame)
+                    try:
+                        send_notifications(detector["name"], detector["query"], query.result.label, detector["notifications"], frame)
+                    except Exception as e:
+                        print(f"Error sending notifications: {e}")
             delay()
         
         retry_time = time.time() + cycle_time

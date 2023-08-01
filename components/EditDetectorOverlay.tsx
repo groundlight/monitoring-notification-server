@@ -97,23 +97,23 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                 <div className="p-8"></div>
                 <button className={`${isDetectorValid ? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500"} text-white font-bold py-2 px-4 rounded absolute bottom-2 right-2`} disabled={!isDetectorValid} onClick={() => {
                     onSave({
-                    detector: {
-                        name,
-                        query,
-                        id,
-                        config: {
-                            enabled: detectorEnabled,
-                            imgsrc_idx: imgSrcIdx,
-                            vid_config: vidConfig,
-                            image: image,
-                            trigger_type: triggerType,
-                            cycle_time: cycleTime,
-                            pin,
-                            pin_active_state: pinActiveState,
-                        }
-                    },
-                    index: index,
-                    isNewDetector: newDetector,
+                        detector: {
+                            name,
+                            query,
+                            id,
+                            config: {
+                                enabled: detectorEnabled,
+                                imgsrc_idx: imgSrcIdx,
+                                vid_config: vidConfig,
+                                image: image,
+                                trigger_type: triggerType,
+                                cycle_time: cycleTime,
+                                pin,
+                                pin_active_state: pinActiveState,
+                            }
+                        },
+                        index: index,
+                        isNewDetector: newDetector,
                     })
                 }}>
                     Save

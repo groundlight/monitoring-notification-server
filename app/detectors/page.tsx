@@ -2,6 +2,7 @@
 
 import { Dropdown } from "@/components/Dropdown";
 import { EditDetectorOverlay } from "@/components/EditDetectorOverlay";
+import { EditNotificationsOverlay } from "@/components/EditNotificationsOverlay";
 import { BASE_SERVER_URL } from "@/utils/config";
 import { ArrowPathIcon, ArrowRightIcon, ChevronDoubleDownIcon, Cog6ToothIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
@@ -17,6 +18,9 @@ export default function Home() {
 	const [lastButtonWasAdd, setLastButtonWasAdd] = useState<boolean>(false);
 	const [imageSources, setImageSources] = useState<CameraType[]>([]);
 	const [camerasWaiting, setCamerasWaiting] = useState<boolean[]>([]); // images that are waiting for a response
+	const [showEditNotificationsOverlay, setShowEditNotificationsOverlay] = useState<boolean>(false);
+	const [editNotificationsOverlayIndex, setEditNotificationsOverlayIndex] = useState<number>(0);
+	const [editNotificationsOverlayGroupIndex, setEditNotificationsOverlayGroupIndex] = useState<number>(0);
 
 	const fetchConfig = async () => {
 		return await fetch(BASE_SERVER_URL + "/api/config").then((res) => res.json()).then((data) => {
@@ -164,7 +168,7 @@ export default function Home() {
 						setShowEditOverlay(true);
 						setLastButtonWasAdd(true);
 						setEditOverlayIndex(detectors.length);
-						let detectors_copy = [...detectors, {
+						setDetectors((detectors) => detectors.concat({
 							name: "New Detector",
 							query: "New Query?",
 							id: "",
@@ -178,8 +182,23 @@ export default function Home() {
 								trigger_type: "time",
 								cycle_time: 30,
 							}
-						}];
-						setDetectors(detectors_copy);
+						}));
+						// let detectors_copy = [...detectors, {
+						// 	name: "New Detector",
+						// 	query: "New Query?",
+						// 	id: "",
+						// 	config: {
+						// 		enabled: false,
+						// 		imgsrc_idx: 0,
+						// 		vid_config: detectors[0]?.config?.vid_config ? detectors[0].config.vid_config : {
+						// 			name: "",
+						// 		},
+						// 		image: detectors[0]?.config?.image ? detectors[0].config.image : "",
+						// 		trigger_type: "time",
+						// 		cycle_time: 30,
+						// 	}
+						// }];
+						// setDetectors(detectors_copy);
 					}}>
 						New Detector
 						<div className="p-1"></div>
@@ -189,7 +208,22 @@ export default function Home() {
 						<Dropdown options={availableDetectors.map(d => d.name)} selected="Add Existing Detector" setSelected={(e, idx) => {
 							setLastButtonWasAdd(true);
 							setEditOverlayIndex(detectors.length);
-							let detectors_copy = [...detectors, {
+							// let detectors_copy = [...detectors, {
+							// 	name: availableDetectors[idx].name,
+							// 	query: availableDetectors[idx].query,
+							// 	id: availableDetectors[idx].id,
+							// 	config: {
+							// 		enabled: false,
+							// 		imgsrc_idx: 0,
+							// 		vid_config: detectors[0]?.config?.vid_config ? detectors[0].config.vid_config : {
+							// 			name: "webcam",
+							// 		},
+							// 		image: detectors[0]?.config?.image ? detectors[0].config.image : "",
+							// 		trigger_type: "time",
+							// 		cycle_time: 30,
+							// 	}
+							// }];
+							let detectors_copy = detectors.concat({
 								name: availableDetectors[idx].name,
 								query: availableDetectors[idx].query,
 								id: availableDetectors[idx].id,
@@ -203,7 +237,7 @@ export default function Home() {
 									trigger_type: "time",
 									cycle_time: 30,
 								}
-							}];
+							});
 							setDetectors(detectors_copy);
 							saveDetectors(detectors_copy);
 						}} className="!border-0 !bg-blue-500 hover:!bg-blue-700 !font-bold !text-white"/>
@@ -298,12 +332,12 @@ export default function Home() {
 									setShowEditOverlay(true);
 									setLastButtonWasAdd(true);
 									setEditOverlayIndex(detectors.length);
-									let detectors_copy = [...detectors, {
+									setDetectors((detectors) => detectors.concat({
 										name: group[0]?.name ? group[0].name : "New Detector",
 										query: group[0]?.query ? group[0].query : "New Query?",
 										id: group[0]?.id ? group[0].id : "",
 										config: {
-											enabled: true,
+											enabled: false,
 											imgsrc_idx: 0,
 											vid_config: detectors[0]?.config?.vid_config ? detectors[0].config.vid_config : {
 												name: "webcam",
@@ -312,8 +346,23 @@ export default function Home() {
 											trigger_type: "time",
 											cycle_time: 30,
 										}
-									}];
-									setDetectors(detectors_copy);
+									}));
+									// let detectors_copy = [...detectors, {
+									// 	name: group[0]?.name ? group[0].name : "New Detector",
+									// 	query: group[0]?.query ? group[0].query : "New Query?",
+									// 	id: group[0]?.id ? group[0].id : "",
+									// 	config: {
+									// 		enabled: false,
+									// 		imgsrc_idx: 0,
+									// 		vid_config: detectors[0]?.config?.vid_config ? detectors[0].config.vid_config : {
+									// 			name: "webcam",
+									// 		},
+									// 		image: detectors[0]?.config?.image ? detectors[0].config.image : "",
+									// 		trigger_type: "time",
+									// 		cycle_time: 30,
+									// 	}
+									// }];
+									// setDetectors(detectors_copy);
 								}}>
 									<PlusIcon className="w-16" />
 								</button>
@@ -354,6 +403,21 @@ export default function Home() {
 						detectors_copy.splice(editOverlayIndex, 1);
 						setDetectors(detectors_copy);
 					}
+				}} />
+			}
+			{
+				detectors.length > 0 && showEditNotificationsOverlay &&
+				<EditNotificationsOverlay detector={detectors[editOverlayIndex]} detectors={availableDetectors} index={0} onSave={async (e) => {
+					setShowEditNotificationsOverlay(false);
+					// const noti_options = e.config;
+					let detectors_copy = detectors.slice();
+					for (const idx in detectorIndiciesByGroup[editNotificationsOverlayGroupIndex]) {
+						detectors_copy[detectorIndiciesByGroup[editNotificationsOverlayGroupIndex][idx]].config.notifications = e.config;
+					}
+					setDetectors(detectors_copy);
+					saveDetectors(detectors_copy);
+				}} onBack={() => {
+					setShowEditNotificationsOverlay(false);
 				}} />
 			}
 		</main>
