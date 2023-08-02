@@ -249,9 +249,21 @@ export default function Home() {
 				{detectorsByGroup && detectorsByGroup.map((group, indexA) => (
 					<div className="flex flex-col items-start" key={indexA}>
 						<div className="p-1"></div>
-						<div className="grid grid-cols-2 gap-4 w-full px-4 py-1 border-y-[1px] border-black">
+						{/* <div className="grid grid-cols-2 gap-4 w-full px-4 py-1 border-y-[1px] border-black"> */}
+						<div className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),56px] gap-4 w-full px-4 py-1 border-y-[1px] border-black">
 							<h2 className="text-lg">{group[0].name}</h2>
 							<h2 className="text-lg">{group[0].query}</h2>
+							<button className="hover:bg-gray-200 hover:text-gray-700 rounded-md px-2 py-1 font-bold" onClick={() => {
+								setShowEditNotificationsOverlay(true);
+								setEditNotificationsOverlayIndex(0);
+								setEditNotificationsOverlayGroupIndex(indexA);
+							}}>
+								<Cog6ToothIcon className="w-6 h-6 m-auto" onClick={() => {
+									// setShowEditNotificationsOverlay(true);
+									// setEditNotificationsOverlayIndex(0);
+									// setEditNotificationsOverlayGroupIndex(indexA);
+								}} />
+							</button>
 						</div>
 						{group.map((detector, indexB) => (
 							<div className="mx-2 my-1 relative grid grid-cols-[200px,100px,1fr,100px] grid-rows-1 gap-4 w-full" key={indexB}>
@@ -406,10 +418,9 @@ export default function Home() {
 				}} />
 			}
 			{
-				detectors.length > 0 && showEditNotificationsOverlay &&
-				<EditNotificationsOverlay detector={detectors[editOverlayIndex]} detectors={availableDetectors} index={0} onSave={async (e) => {
+				detectors.length > 0 && showEditNotificationsOverlay && detectorsByGroup[editNotificationsOverlayGroupIndex][0] &&
+				<EditNotificationsOverlay detector={detectorsByGroup[editNotificationsOverlayGroupIndex][0]} detectors={availableDetectors} index={0} onSave={async (e) => {
 					setShowEditNotificationsOverlay(false);
-					// const noti_options = e.config;
 					let detectors_copy = detectors.slice();
 					for (const idx in detectorIndiciesByGroup[editNotificationsOverlayGroupIndex]) {
 						detectors_copy[detectorIndiciesByGroup[editNotificationsOverlayGroupIndex][idx]].config.notifications = e.config;

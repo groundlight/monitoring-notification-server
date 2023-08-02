@@ -21,7 +21,7 @@ class Config(pydantic.BaseModel):
     enabled: bool
     imgsrc_idx: int
     vid_config: dict
-    image: str
+    image: Optional[str]
     trigger_type: str
     cycle_time: Union[int, None]
     pin: Union[int, None]
