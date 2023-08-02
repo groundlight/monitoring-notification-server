@@ -32,8 +32,9 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
     const slackValid = !(slackNotification && (slackNotification.token === "" || slackNotification.channel_id === ""));
     const twilioValid = !(twilioNotification && (twilioNotification.account_sid === "" || twilioNotification.auth_token === "" || twilioNotification.from_number === "" || twilioNotification.to_number === ""));
     const emailValid = !(emailNotification && (emailNotification.from_email === "" || emailNotification.to_email === "" || emailNotification.email_password === ""));
-    const stacklightValid = !(stacklightNotification && ((stacklightNotification.ip === "") && (stacklightNotification.id === "" || stacklightNotification.ssid === "" || stacklightNotification.password === "")));
+    // const stacklightValid = !(stacklightNotification && ((stacklightNotification.ip === "") && (stacklightNotification.id === "" || stacklightNotification.ssid === "" || stacklightNotification.password === "")));
     // const stacklightValid = !(stacklightNotification && (stacklightNotification.id === "" && stacklightNotification.ip === ""));
+    const stacklightValid = !(stacklightNotification && stacklightNotification.ip === "");
     const isDetectorValid = slackValid && twilioValid && emailValid && stacklightValid;
 
     return (
@@ -167,8 +168,8 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                                 })} />
                             </div>
                             <div className="flex gap-2">
-                                <div className="font-bold  place-self-center">Email Password:</div>
-                                <input className={`border-2 ${emailValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Email Password" value={emailNotification.email_password} onChange={(e) => setEmailNotification({
+                                <div className="font-bold  place-self-center">Email Token:</div>
+                                <input className={`border-2 ${emailValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Email Token" value={emailNotification.email_password} onChange={(e) => setEmailNotification({
                                     ...emailNotification,
                                     email_password: e.target.value,
                                 })} />
@@ -191,13 +192,13 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                     {
                         stacklightNotification &&
                         <>
-                            <div className="flex gap-2">
+                            {/* <div className="flex gap-2">
                                 <div className="font-bold  place-self-center">Stacklight ID:</div>
                                 <input className={`border-2 ${stacklightValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Stacklight ID" value={stacklightNotification.id} onChange={(e) => setStacklightNotification({
                                     ...stacklightNotification,
                                     id: e.target.value,
                                 })} />
-                            </div>
+                            </div> */}
                             <div className="flex gap-2">
                                 <div className="font-bold  place-self-center">Stacklight IP:</div>
                                 <input className={`border-2 ${stacklightValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Stacklight IP" value={stacklightNotification.ip} onChange={(e) => setStacklightNotification({
@@ -205,7 +206,7 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                                     ip: e.target.value,
                                 })} />
                             </div>
-                            <div className="flex gap-2">
+                            {/* <div className="flex gap-2">
                                 <div className="font-bold  place-self-center">Stacklight SSID:</div>
                                 <input className={`border-2 ${stacklightValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Stacklight SSID" value={stacklightNotification.ssid} onChange={(e) => setStacklightNotification({
                                     ...stacklightNotification,
@@ -218,7 +219,7 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                                     ...stacklightNotification,
                                     password: e.target.value,
                                 })} />
-                            </div>
+                            </div> */}
                         </>
                     }
                     
@@ -227,7 +228,7 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                 <button className={`${isDetectorValid ? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500"} text-white font-bold py-2 px-4 rounded absolute bottom-2 right-2`} disabled={!isDetectorValid} onClick={() => {
                     onSave({
                         config: {
-                            condition: NotificationCondition.FAIL,
+                            condition: 'FAIL',
                             slack: slackNotification,
                             twilio: twilioNotification,
                             email: emailNotification,

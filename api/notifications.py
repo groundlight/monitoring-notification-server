@@ -12,24 +12,43 @@ from slack_sdk import WebClient
 import requests
 import os
 
-def send_notifications(det_name: str, query: str, label: str, options: dict, image):
+def send_notifications(det_name: str, query: str, label: str, options: dict, image, logger):
     if "condition" not in options:
+        # print("No condition provided")
+        logger.error("No condition provided")
         return
-    condition = options["condition"] # "pass", "fail"
-    if not ((condition == "pass" and label == "YES") or (condition == "fail" and label == "NO")):
+    condition = options["condition"].upper() # "PASS", "FAIL"
+    if label == "YES":
+        label = "PASS"
+    elif label == "NO":
+        label = "FAIL"
+
+    if "stacklight" in options:
+        # print("Sending stacklight")
+        logger.error("Sending stacklight")
+        stacklight_options = options["stacklight"]
+        post_to_stacklight(det_name, query, label, stacklight_options)
+
+    if not ((condition == "PASS" and label == "PASS") or (condition == "FAIL" and label == "FAIL")):
+        # print("Condition not met")
+        logger.error("Condition not met")
         return
+    
     if "email" in options:
+        # print("Sending email")
+        logger.error("Sending email")
         email_options = options["email"]
         send_email(det_name, query, image, label, email_options)
     if "twilio" in options:
+        # print("Sending sms")
+        logger.error("Sending sms")
         twilio_options = options["twilio"]
         send_sms(det_name, query, label, twilio_options)
     if "slack" in options:
+        # print("Sending slack")
+        logger.error("Sending slack")
         slack_options = options["slack"]
         send_slack(det_name, query, label, slack_options)
-    if "stacklight" in options:
-        stacklight_options = options["stacklight"]
-        post_to_stacklight(det_name, query, label, stacklight_options)
 
 def send_email(det_name: str, query: str, image, label: str, options: dict):
     subject = f"Your detector [{det_name}] detected an anomaly"
@@ -47,7 +66,7 @@ def send_email(det_name: str, query: str, image, label: str, options: dict):
     # Add body to email
     message.attach(MIMEText(body, "plain"))
 
-    filename = "test.jpg"  # In same directory as script
+    filename = "image.jpg"  # In same directory as script
 
     _, im_buf_arr = cv2.imencode(".jpg", image)
     byte_im = im_buf_arr.tobytes()
@@ -93,6 +112,9 @@ def send_slack(det_name: str, query: str, label: str, options: dict):
     # assert response["message"]["text"] == f"Your detector [{det_name}] returned a \"{label}\" result."
 
 def post_to_stacklight(det_name: str, query: str, label: str, options: dict):
+    if "ip" not in options:
+        return # TODO: Fix this (probably add usb stuff)
+
     if "ip" not in options:
         id = options["id"]
         ap_name = "GL_STACKLIGHT_" + id

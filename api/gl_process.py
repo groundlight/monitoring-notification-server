@@ -6,6 +6,7 @@ import cv2
 import groundlight
 import multiprocessing
 from api.notifications import send_notifications
+import logging
 
 def frame_to_base64(frame) -> str:
     #  encode image as jpeg
@@ -29,7 +30,7 @@ def push_label_result(api_key: str, endpoint: str, query_id: str, label: str):
     else:
         print(f"Invalid response: {label}")
 
-def run_process(idx: int, detector: dict, api_key: str, endpoint: str,
+def run_process(idx: int, logger, detector: dict, api_key: str, endpoint: str,
                 notify_queue: multiprocessing.Queue,
                 photo_queue: multiprocessing.Queue,
                 # websocket_img_queue: multiprocessing.Queue,
@@ -44,8 +45,6 @@ def run_process(idx: int, detector: dict, api_key: str, endpoint: str,
     poll_delay = 0.5
     delay = lambda: time.sleep(poll_delay)
     cycle_time = 30
-    retry_time = time.time() + cycle_time
-    should_continue = lambda: time.time() < retry_time
 
     if trigger_type == "motion":
         # TODO: implement
@@ -67,7 +66,10 @@ def run_process(idx: int, detector: dict, api_key: str, endpoint: str,
     det = gl.get_detector(detector["id"])
     conf = det.confidence_threshold if det.confidence_threshold is not None else 0.9
 
-    print(f"Starting detector {detector['id']}...")
+    retry_time = time.time() + cycle_time
+    should_continue = lambda: time.time() < retry_time
+
+    logger.error(f"Starting detector {detector['id']}...")
 
     while(True):
         notify_queue.put("fetch")
@@ -111,9 +113,10 @@ def run_process(idx: int, detector: dict, api_key: str, endpoint: str,
                     "label": query.result.label,
                 })
                 has_cancelled = True
-                if "notifications" in detector:
+                if "notifications" in detector["config"]:
                     try:
-                        send_notifications(detector["name"], detector["query"], query.result.label, detector["notifications"], frame)
+                        logger.error(f"Sending notifications for detector {detector['id']}...")
+                        send_notifications(detector["name"], detector["query"], query.result.label, detector["config"]["notifications"], frame, logger)
                     except Exception as e:
                         print(f"Error sending notifications: {e}")
             delay()

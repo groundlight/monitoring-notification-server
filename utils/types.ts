@@ -3,10 +3,7 @@ enum PinState {
 	LOW = 0,
 }
 
-enum NotificationCondition {
-	PASS = 'pass',
-	FAIL = 'fail',
-}
+type NotificationCondition = 'PASS' | 'FAIL';
 
 type NotificationOptionsType = {
 	condition: NotificationCondition;

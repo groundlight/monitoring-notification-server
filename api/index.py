@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import multiprocessing
 import time
 from typing import List, Optional, Union
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, logger
 import json
 from fastapi.websockets import WebSocketState
 import yaml
@@ -74,6 +74,7 @@ def set_in_config(params: dict):
     store_config(config)
 
 def start_processes(api_key, endpoint, detectors):
+    # logger.logger.setLevel(10)
     app.DETECTOR_CONFIG = {
         "api_key": api_key,
         "endpoint": endpoint,
@@ -87,6 +88,7 @@ def start_processes(api_key, endpoint, detectors):
     for i in range(len(detectors)):
         process = multiprocessing.Process(target=run_process, args=(
             i,
+            logger.logger,
             detectors[i],
             api_key,
             endpoint,
@@ -287,11 +289,12 @@ def set_config_post_method(config_str: dict):
     
     return "Ok"
 
-async def websocket_queue_runner():
+async def websocket_queue_runner(logger):
     while True:
         for i in range(len(app.DETECTOR_GRAB_NOTIFY_QUEUES)):
             if not app.DETECTOR_GRAB_NOTIFY_QUEUES[i].empty():
-                print("Taking photo")
+                # print("Taking photo")
+                logger.error("Taking photo")
                 app.DETECTOR_GRAB_NOTIFY_QUEUES[i].get_nowait()
                 d = list(filter(lambda d: d["config"]["enabled"], app.DETECTOR_CONFIG["detectors"]))[i]
                 img = app.ALL_GRABBERS[d["config"]["imgsrc_idx"]].grab()
@@ -312,7 +315,7 @@ async def websocket_queue_runner():
 @app.on_event("startup")
 async def app_startup():
     loop = asyncio.get_event_loop()
-    loop.create_task(websocket_queue_runner())
+    loop.create_task(websocket_queue_runner(logger.logger))
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
