@@ -39,7 +39,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           tags: docker.io/maxatgroundlight/groundlight-edge-client-frontend:latest
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64,linux/armv7
           # platforms: linux/amd64,linux/arm64,linux/arm/v7
           file: ./frontend.Dockerfile
           push: true
@@ -79,7 +79,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           tags: docker.io/maxatgroundlight/groundlight-edge-client-backend:latest
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64,linux/armv7
           # platforms: linux/amd64,linux/arm64,linux/arm/v7
           file: ./backend.Dockerfile
           push: true
