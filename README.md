@@ -54,8 +54,8 @@ services:
 1. Install [Node.js](https://nodejs.org/en/download/) and [Python 3.8+](https://www.python.org/downloads/).
 
 ```bash
-git clone git@github.com:max-at-groundlight/linux-edgelight-server.git
-cd linux-edgelight-server
+git clone https://github.com/groundlight/docker-edgelight-server.git
+cd docker-edgelight-server
 npm install
 npm run dev
 ```
