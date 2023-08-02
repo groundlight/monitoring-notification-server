@@ -1,11 +1,25 @@
 <p align="center">
   <a href="https://nextjs-fastapi-starter.vercel.app/">
     <img src="https://avatars.githubusercontent.com/u/118213576?s=200&v=4" height="96">
-    <h3 align="center">Docker Edgelight Server</h3>
+    <h3 align="center">Groundlight Detector Builder</h3>
   </a>
 </p>
 
 <br/>
+
+## What is the Groundlight Detector Builder?
+
+Groundlight Detector Builder is an app you can deploy anywhere to easily build Groundlight Detectors, and configure them to pull from custom image sources and post notifications.
+
+The Detector Builder has a simple web interface (depected below) that allows you to configure your detector, and a backend that runs on your device to pull images from your camera and post notifications.
+
+### Intro Page
+
+![Intro Page](./images/Groundlight-Docker-Frontpage.png)
+
+### Detector Dashboard
+
+![Detector Dashboard](./images/Groundlight-Detector-Dashboard.png)
 
 ## Running from Docker
 
