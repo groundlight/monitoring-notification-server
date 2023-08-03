@@ -1,6 +1,13 @@
 #syntax=docker/dockerfile:1.4
 FROM node:18-buster-slim AS base
 
+# Install dependencies only when needed
+FROM base AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+# RUN apk add --no-cache libc6-compat
+# RUN apt install -y libc6-dev
+WORKDIR /app
+
 # Install Extra dependencies
 RUN apt-get update || : && apt-get install python3 -y
 RUN apt install sudo -y
@@ -9,16 +16,9 @@ RUN sudo apt install make
 RUN sudo apt install build-essential -y
 RUN sudo apt install libudev-dev
 
-# Install dependencies only when needed
-FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-# RUN apk add --no-cache libc6-compat
-# RUN apt install -y libc6-dev
-WORKDIR /app
-
 # Install dependencies based on the preferred package manager
 COPY --link package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
-RUN npm i sharp@0.11.4
+# RUN npm i sharp@0.11.4
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
   elif [ -f package-lock.json ]; then npm ci; \
