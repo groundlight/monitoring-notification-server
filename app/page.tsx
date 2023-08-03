@@ -34,7 +34,8 @@ export default function Home() {
 			<div className="p-10">
 				<h2 className="text-3xl">Getting started:</h2>
 				<div className="px-10 py-5 w-3/4 flex flex-col gap-4">
-					<Link className="flex gap-2 border-4 border-blue-500 px-6 py-3 rounded-2xl" href="/api-key">
+					{/* <Link className="flex gap-2 border-4 border-blue-500 px-6 py-3 rounded-2xl" href="/api-key"> */}
+					<Link className="flex gap-2 border-4 border-blue-500 px-6 py-3 rounded-2xl" href="/settings">
 						<div className="font-semibold place-self-center">Add your api key</div>
 						{/* <input className="rounded-md w-8 ml-auto" type="checkbox" checked={isImgSrc} onChange={(e) => setIsImgSrc(e.target.checked)}/> */}
 						<input className="rounded-md w-8 ml-auto" type="checkbox" checked={isApiKey} readOnly />
@@ -49,6 +50,7 @@ export default function Home() {
 					</Link>
 					<button className="bg-blue-500 hover:bg-blue-700 text-white font-bold px-6 py-3 m-1 w-40 rounded-xl" onClick={() => {
 						fetch(BASE_SERVER_URL + "/api/finished_intro").then(() => setIntroCompleted(true));
+						window.location.href = "/detectors";
 					}}>
 						{(isApiKey && isImgSrc && isDet) ? "Continue!" : "Skip"}
 					</button>

@@ -37,7 +37,7 @@ def run_process(idx: int, logger, detector: dict, api_key: str, endpoint: str,
                 websocket_metadata_queue: multiprocessing.Queue,
                 websocket_cancel_queue: multiprocessing.Queue,
                 websocket_response_queue: multiprocessing.Queue):
-    print("Starting process...")
+    # print("Starting process...")
 
     trigger_type = detector["config"]["trigger_type"]
 
