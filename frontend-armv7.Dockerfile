@@ -1,6 +1,14 @@
 #syntax=docker/dockerfile:1.4
 FROM node:18-buster-slim AS base
 
+# Install Extra dependencies
+RUN apt-get update || : && apt-get install python3 -y
+RUN apt install sudo -y
+RUN sudo apt update && sudo apt upgrade -y
+RUN sudo apt install make
+RUN sudo apt install build-essential -y
+RUN sudo apt install libudev-dev
+
 # Install dependencies only when needed
 FROM base AS deps
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
