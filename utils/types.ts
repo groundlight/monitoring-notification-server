@@ -3,6 +3,33 @@ enum PinState {
 	LOW = 0,
 }
 
+type NotificationCondition = 'PASS' | 'FAIL';
+
+type NotificationOptionsType = {
+	condition: NotificationCondition;
+	email?: {
+		from_email: string;
+		to_email: string;
+		email_password: string;
+	};
+	twilio?: {
+		account_sid: string;
+		auth_token: string;
+		from_number: string;
+		to_number: string;
+	};
+	slack?: {
+		token: string;
+		channel_id: string;
+	};
+	stacklight?: {
+		ip?: string;
+		id: string;
+		ssid?: string;
+		password?: string;
+	};
+};
+
 type DetConfType = {
 	enabled: boolean;
 	imgsrc_idx: number;
@@ -12,6 +39,7 @@ type DetConfType = {
 	cycle_time?: number;
 	pin?: number;
 	pin_active_state?: PinState;
+	notifications?: NotificationOptionsType;
 };
 
 type DetType = {

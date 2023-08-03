@@ -3,3 +3,5 @@ uvicorn[standard]
 groundlight
 framegrab
 pypylon
+slack_sdk
+twilio
