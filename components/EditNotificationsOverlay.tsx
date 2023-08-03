@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Dropdown } from "./Dropdown";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import ReactSwitch from "react-switch";
+import { PushStacklightConfigButton } from "./PushStacklightConfigButton";
 
 export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
     { detector: DetType, detectors: DetBaseType[], index: number, onSave: (e: { config: NotificationOptionsType, index: number }) => void, onBack: () => void }
@@ -38,7 +39,7 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
     const isDetectorValid = slackValid && twilioValid && emailValid && stacklightValid;
 
     return (
-        <div className="bg-blend-darken w-full h-full absolute backdrop-blur-lg top-0 left-0 flex pt-20 place-items-start justify-center" >
+        <div className="bg-blend-darken w-full h-full absolute backdrop-blur-lg top-0 left-0 flex pt-5 place-items-start justify-center" >
             <div className="flex flex-col items-center shadow-md bg-white rounded-md p-5 w-[40%] relative">
                 <div className="flex flex-col gap-2 relative">
                     <div className="flex gap-2">
@@ -57,7 +58,7 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                         <div className={`font-bold place-self-center px-4 py-2 border-2 rounded-md ${condition === "FAIL" ? "border-red-500" : "border-white"}`}>Fail</div>
                         <ReactSwitch checked={condition === "PASS"} onChange={(checked) => {
                             setCondition(checked ? "PASS" : "FAIL");
-                        }} checkedIcon={false} uncheckedIcon={false} offColor="CC333333" />
+                        }} checkedIcon={false} uncheckedIcon={false} offColor="#CC3333" />
                         <div className={`font-bold place-self-center px-4 py-2 border-2 rounded-md ${condition === "PASS" ? "border-[#080]" : "border-white"}`}>Pass</div>
                     </div>
                     <div className="p-2"></div>
@@ -214,7 +215,7 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                                     ip: e.target.value,
                                 })} />
                             </div>
-                            {/* <div className="flex gap-2">
+                            <div className="flex gap-2">
                                 <div className="font-bold  place-self-center">Stacklight SSID:</div>
                                 <input className={`border-2 ${stacklightValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Stacklight SSID" value={stacklightNotification.ssid} onChange={(e) => setStacklightNotification({
                                     ...stacklightNotification,
@@ -227,7 +228,19 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                                     ...stacklightNotification,
                                     password: e.target.value,
                                 })} />
-                            </div> */}
+                            </div>
+                            <div className="ml-auto">
+                                <PushStacklightConfigButton valid={
+                                    stacklightNotification.ssid !== undefined && stacklightNotification.ssid !== "" && stacklightNotification.password !== undefined && stacklightNotification.password !== ""
+                                } ssid={stacklightNotification.ssid || ""} password={stacklightNotification.password || ""} callback={(worked, ip) => {
+                                    if (worked) {
+                                        setStacklightNotification({
+                                            ...stacklightNotification,
+                                            ip: ip,
+                                        });
+                                    }
+                                }} />
+                            </div>
                         </>
                     }
                     

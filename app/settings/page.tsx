@@ -6,8 +6,18 @@ import { useEffect, useState } from "react";
 export default function Page() {
     const [apiKeyTemp, setApiKeyTemp] = useState<string>("");
     const [configFile, setConfigFile] = useState<File | null>(null);
+    const [jsonDataUrl, setJsonDataUrl] = useState<string>("");
+    const [yamlDataUrl, setYamlDataUrl] = useState<string>("");
 
     useEffect(() => {
+        // update json data url
+        fetch(BASE_SERVER_URL + "/api/config-json-pretty").then((res) => res.json()).then((data) => {
+          setJsonDataUrl(`data:application/json,${encodeURIComponent(data)}`);
+        });
+        // update yaml data url
+        fetch(BASE_SERVER_URL + "/api/config-yaml-pretty").then((res) => res.json()).then((data) => {
+          setYamlDataUrl(`data:application/yaml,${encodeURIComponent(data)}`);
+        });
         // fetch detector configs
         fetch(BASE_SERVER_URL + "/api/config").then((res) => res.json()).then((data) => {
             setApiKeyTemp(data.api_key && data.api_key != "" ? (data.api_key as string).substring(0, 15) + "..." : "");
@@ -54,8 +64,42 @@ export default function Page() {
                     Save
                 </button>
             </div>
-            <div className="p-2"></div>
+            {/* <div className="p-10"></div>
             <div className="text-2xl" >
+                Notification Settings:
+            </div>
+            <div className="p-2"></div>
+            <div className="text-xl" >
+                Enter your wifi credentials to enable Stacklight:
+            </div>
+            <div className="p-2"></div>
+            <div className="flex gap-2 mx-4">
+                <input className="border-2 border-gray-300 rounded-md p-2" type="text" placeholder="WiFi SSID" />
+                <input className="border-2 border-gray-300 rounded-md p-2" type="text" placeholder="WiFi Password" />
+                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => {
+                    // save email
+                }}>
+                    Save WiFi Config
+                </button>
+            </div> */}
+            <div className="p-10"></div>
+            <div className="text-2xl" >
+                Additional Settings:
+            </div>
+            <div className="p-2"></div>
+            <div className="text-xl" >
+                Download your Groundlight config file:
+            </div>
+            <div className="flex flex-col gap-5 p-5 w-80">
+                <a className="bg-blue-500 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded text-center" href={jsonDataUrl} download="detector-configs.json" >
+                    Download Config as JSON
+                </a>
+                <a className="bg-blue-500 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded text-center" href={yamlDataUrl} download="detector-configs.yaml" >
+                    Download Config as YAML
+                </a>
+            </div>
+            <div className="p-2"></div>
+            <div className="text-xl" >
                 Upload your Groundlight config file:
             </div>
             <div className="p-2"></div>
