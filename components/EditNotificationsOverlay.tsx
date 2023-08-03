@@ -6,7 +6,7 @@ import ReactSwitch from "react-switch";
 export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
     { detector: DetType, detectors: DetBaseType[], index: number, onSave: (e: { config: NotificationOptionsType, index: number }) => void, onBack: () => void }
 ) => {
-    // const [triggerType, setTriggerType] = useState<string>(detector.config.trigger_type);
+    const [condition, setCondition] = useState<NotificationCondition>(detector.config.notifications?.condition || "FAIL");
     const [slackNotification, setSlackNotification] = useState<{
 		token: string;
 		channel_id: string;
@@ -46,14 +46,22 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                         <div className="border-2 border-gray-300 rounded-md p-2 w-full"><div className="pt-0.5">{detector.name}</div></div>
                     </div>
                     <div className="flex gap-2">
-                        <div className="font-bold  place-self-center">Detector Query:</div>
+                        <div className="font-bold place-self-center">Detector Query:</div>
                         <div className="border-2 border-gray-300 rounded-md p-2 w-full"><div className="pt-0.5">{detector.query}</div></div>
                     </div>
 
-                    {/* <div className="flex gap-2">
-                        <div className="font-bold  place-self-center">Cycle Time:</div>
-                        <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="number" placeholder="Cycle Time" value={} onChange={(e) => setCycleTime(parseInt(e.target.value))} min={0} />
-                    </div> */}
+                    {/* Notifification Condition Switch */}
+                    <div className="p-2"></div>
+                    <div className="font-bold place-self-center">Notification On:</div>
+                    <div className="flex gap-2 w-full justify-center place-items-center">
+                        <div className={`font-bold place-self-center px-4 py-2 border-2 rounded-md ${condition === "FAIL" ? "border-red-500" : "border-white"}`}>Fail</div>
+                        <ReactSwitch checked={condition === "PASS"} onChange={(checked) => {
+                            setCondition(checked ? "PASS" : "FAIL");
+                        }} checkedIcon={false} uncheckedIcon={false} offColor="CC333333" />
+                        <div className={`font-bold place-self-center px-4 py-2 border-2 rounded-md ${condition === "PASS" ? "border-[#080]" : "border-white"}`}>Pass</div>
+                    </div>
+                    <div className="p-2"></div>
+
                     <div className="flex gap-2">
                         <div className="font-bold  place-self-center">Enable Slack:</div>
                         <ReactSwitch checked={!!slackNotification} onChange={(checked) => {
@@ -228,7 +236,7 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                 <button className={`${isDetectorValid ? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500"} text-white font-bold py-2 px-4 rounded absolute bottom-2 right-2`} disabled={!isDetectorValid} onClick={() => {
                     onSave({
                         config: {
-                            condition: 'FAIL',
+                            condition: condition,
                             slack: slackNotification,
                             twilio: twilioNotification,
                             email: emailNotification,
