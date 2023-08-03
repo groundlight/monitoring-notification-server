@@ -77,7 +77,7 @@ jobs:
         with:
           tags: docker.io/maxatgroundlight/groundlight-edge-client-frontend:latest
           platforms: linux/arm/v7
-          file: ./frontend.Dockerfile
+          file: ./frontend-armv7.Dockerfile
           push: true
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
