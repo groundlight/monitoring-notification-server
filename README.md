@@ -1,17 +1,17 @@
 <p align="center">
   <a href="https://nextjs-fastapi-starter.vercel.app/">
     <img src="https://avatars.githubusercontent.com/u/118213576?s=200&v=4" height="96">
-    <h3 align="center">Groundlight Detector Builder</h3>
+    <h3 align="center">Notification Server Example</h3>
   </a>
 </p>
 
 <br/>
 
-## What is the Groundlight Detector Builder?
+## What is the Notification Server Example?
 
-Groundlight Detector Builder is an app you can deploy anywhere to easily build Groundlight Detectors, and configure them to pull from custom image sources and post notifications.
+Our Notification Server Example is a server you can deploy anywhere to easily build Groundlight Detectors, and configure them to pull from custom image sources and post notifications.
 
-The Detector Builder has a simple web interface (depected below) that allows you to configure your detector, and a backend that runs on your device to pull images from your camera and post notifications.
+The Notification Server Example has a simple web interface (depected below) that allows you to configure your detector, and a backend that runs on your device to pull images from your camera and post notifications.
 
 ### Intro Page
 
@@ -21,20 +21,20 @@ The Detector Builder has a simple web interface (depected below) that allows you
 
 ![Detector Dashboard](./images/Groundlight-Detector-Dashboard.png)
 
-## Running from Docker
+## Running with Docker
 
 1. Create the file `docker-compose.yml` with the following contents:
 
 ```yaml
 services:
   frontend:
-    image: docker.io/maxatgroundlight/detector-builder-frontend:latest
+    image: docker.io/groundlight/notification-server-example-frontend:latest
     ports:
       - "3000:3000"
     depends_on:
       - backend
   backend:
-    image: docker.io/maxatgroundlight/detector-builder-backend:latest
+    image: docker.io/groundlight/notification-server-example-backend:latest
     ports:
       - "8000:8000"
     devices:
@@ -56,13 +56,13 @@ services:
 ```yaml
 services:
   frontend:
-    image: docker.io/maxatgroundlight/detector-builder-frontend-armv7:latest
+    image: docker.io/groundlight/notification-server-example-frontend:armv7-latest
     ports:
       - "3000:3000"
     depends_on:
       - backend
   backend:
-    image: docker.io/maxatgroundlight/detector-builder-backend-armv7:latest
+    image: docker.io/groundlight/notification-server-example-backend:armv7-latest
     ports:
       - "8000:8000"
     devices:
@@ -77,7 +77,7 @@ services:
 
 2. Run `docker-compose up` in the same directory as the `docker-compose.yml` file.
 
-## Running from Source
+## Building from Source
 
 1. Install [Node.js](https://nodejs.org/en/download/) and [Python 3.8+](https://www.python.org/downloads/).
 
