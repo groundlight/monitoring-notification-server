@@ -28,13 +28,41 @@ The Detector Builder has a simple web interface (depected below) that allows you
 ```yaml
 services:
   frontend:
-    image: docker.io/maxatgroundlight/groundlight-edge-client-frontend:latest
+    image: docker.io/maxatgroundlight/detector-builder-frontend:latest
     ports:
       - "3000:3000"
     depends_on:
       - backend
   backend:
-    image: docker.io/maxatgroundlight/groundlight-edge-client-backend:latest
+    image: docker.io/maxatgroundlight/detector-builder-backend:latest
+    ports:
+      - "8000:8000"
+    devices:
+      - /dev/video0:/dev/video0
+      - /dev/video1:/dev/video1
+      - /dev/video2:/dev/video2
+      - /dev/video3:/dev/video3
+    privileged: true
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+```
+
+2. Run `docker-compose up` in the same directory as the `docker-compose.yml` file.
+
+## Running from Docker on 32-bit ARM (armv7)
+
+1. Create the file `docker-compose.yml` with the following contents:
+
+```yaml
+services:
+  frontend:
+    image: docker.io/maxatgroundlight/detector-builder-frontend-armv7:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+  backend:
+    image: docker.io/maxatgroundlight/detector-builder-backend-armv7:latest
     ports:
       - "8000:8000"
     devices:
