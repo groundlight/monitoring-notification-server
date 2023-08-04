@@ -1,10 +1,10 @@
-# FROM python:3.9-slim-bookworm
-FROM python:3.9-alpine
+FROM python:3.9-slim-bookworm
+# FROM python:3.9-alpine
 
 WORKDIR /app
 
 COPY ./requirements.txt /app/requirements.txt
-COPY ./pi_requirements.txt /app/pi_requirements.txt
+# COPY ./pi_requirements.txt /app/pi_requirements.txt
 
 RUN pip3 install --no-cache-dir --upgrade -r /app/requirements.txt
 RUN pip3 install opencv-python-headless
