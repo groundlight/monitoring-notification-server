@@ -116,6 +116,7 @@ def run_process(idx: int, logger, detector: dict, api_key: str, endpoint: str,
                 if "notifications" in detector["config"]:
                     try:
                         logger.error(f"Sending notifications for detector {detector['id']}...")
+                        # logger.error(detector["config"]["notifications"])
                         send_notifications(detector["name"], detector["query"], query.result.label, detector["config"]["notifications"], frame, logger)
                     except Exception as e:
                         print(f"Error sending notifications: {e}")
