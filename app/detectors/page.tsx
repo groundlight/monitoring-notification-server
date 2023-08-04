@@ -106,8 +106,6 @@ export default function Home() {
 
 	const changeDetectorEnabled = (det_idx: number, enabled: boolean) => {
 		// change detector enabled
-		// const det_idx = detectors.findIndex((det) => det == detector);
-		// if (det_idx === -1) return;
 		let detectors_copy = [...detectors];
 		detectors_copy[det_idx].config.enabled = enabled;
 		setDetectors(detectors_copy);
@@ -183,22 +181,6 @@ export default function Home() {
 								cycle_time: 30,
 							}
 						}));
-						// let detectors_copy = [...detectors, {
-						// 	name: "New Detector",
-						// 	query: "New Query?",
-						// 	id: "",
-						// 	config: {
-						// 		enabled: false,
-						// 		imgsrc_idx: 0,
-						// 		vid_config: detectors[0]?.config?.vid_config ? detectors[0].config.vid_config : {
-						// 			name: "",
-						// 		},
-						// 		image: detectors[0]?.config?.image ? detectors[0].config.image : "",
-						// 		trigger_type: "time",
-						// 		cycle_time: 30,
-						// 	}
-						// }];
-						// setDetectors(detectors_copy);
 					}}>
 						New Detector
 						<div className="p-1"></div>
@@ -208,21 +190,6 @@ export default function Home() {
 						<Dropdown options={availableDetectors.map(d => d.name)} selected="Add Existing Detector" setSelected={(e, idx) => {
 							setLastButtonWasAdd(true);
 							setEditOverlayIndex(detectors.length);
-							// let detectors_copy = [...detectors, {
-							// 	name: availableDetectors[idx].name,
-							// 	query: availableDetectors[idx].query,
-							// 	id: availableDetectors[idx].id,
-							// 	config: {
-							// 		enabled: false,
-							// 		imgsrc_idx: 0,
-							// 		vid_config: detectors[0]?.config?.vid_config ? detectors[0].config.vid_config : {
-							// 			name: "webcam",
-							// 		},
-							// 		image: detectors[0]?.config?.image ? detectors[0].config.image : "",
-							// 		trigger_type: "time",
-							// 		cycle_time: 30,
-							// 	}
-							// }];
 							let detectors_copy = detectors.concat({
 								name: availableDetectors[idx].name,
 								query: availableDetectors[idx].query,
@@ -274,14 +241,6 @@ export default function Home() {
 									:
 										<div className="w-full rounded-lg bg-red-400 h-32" />
 									}
-									{/* <button>
-										<Cog6ToothIcon className="absolute top-0 right-0 w-8 h-8 rounded-md backdrop-blur-xl backdrop-brightness-150" onClick={() => {
-											const index = detectorIndiciesByGroup[indexA][indexB];
-											setEditOverlayIndex(index);
-											setShowEditOverlay(true);
-											setLastButtonWasAdd(false);
-										}} />
-									</button> */}
 									<button className="bg-blue-500 hover:bg-blue-700ab absolute top-0 left-0 rounded-md px-2 py-1 text-white font-bold" onClick={() => {
 										refreshDetectorImg(detector.config.imgsrc_idx, detector);
 									}}>
@@ -299,7 +258,6 @@ export default function Home() {
 									}} />
 								</div>
 								<div className="flex flex-col place-items-center justify-center">
-									{/* <div className="font-bold place-self-center">Enabled?</div> */}
 									<div className="font-bold place-self-center text-center mb-2">Condition Running?</div>
 									<ReactSwitch checked={detector.config.enabled} onChange={(checked) => {
 										const index = detectorIndiciesByGroup[indexA][indexB];
@@ -318,8 +276,6 @@ export default function Home() {
 										<div className={` ${detector.config.trigger_type != "time" && "hidden"}`}>{detector.config.cycle_time + "s"}</div>
 									</div>
 								</div>
-								{/* <div className="flex place-items-center">
-								</div> */}
 								<div className="w-full h-full flex flex-col place-items-center justify-center gap-4">
 								<button className="flex place-items-center rounded-md backdrop-blur-xl backdrop-brightness-150 text-lg px-4 py-2 border-2 border-gray-300 bg-gray-200 hover:bg-gray-300 text-gray-600" onClick={() => {
 										const index = detectorIndiciesByGroup[indexA][indexB];
@@ -359,22 +315,6 @@ export default function Home() {
 											cycle_time: 30,
 										}
 									}));
-									// let detectors_copy = [...detectors, {
-									// 	name: group[0]?.name ? group[0].name : "New Detector",
-									// 	query: group[0]?.query ? group[0].query : "New Query?",
-									// 	id: group[0]?.id ? group[0].id : "",
-									// 	config: {
-									// 		enabled: false,
-									// 		imgsrc_idx: 0,
-									// 		vid_config: detectors[0]?.config?.vid_config ? detectors[0].config.vid_config : {
-									// 			name: "webcam",
-									// 		},
-									// 		image: detectors[0]?.config?.image ? detectors[0].config.image : "",
-									// 		trigger_type: "time",
-									// 		cycle_time: 30,
-									// 	}
-									// }];
-									// setDetectors(detectors_copy);
 								}}>
 									<PlusIcon className="w-16" />
 								</button>

@@ -33,15 +33,12 @@ def push_label_result(api_key: str, endpoint: str, query_id: str, label: str):
 def run_process(idx: int, logger, detector: dict, api_key: str, endpoint: str,
                 notify_queue: multiprocessing.Queue,
                 photo_queue: multiprocessing.Queue,
-                # websocket_img_queue: multiprocessing.Queue,
                 websocket_metadata_queue: multiprocessing.Queue,
                 websocket_cancel_queue: multiprocessing.Queue,
                 websocket_response_queue: multiprocessing.Queue):
-    # print("Starting process...")
 
     trigger_type = detector["config"]["trigger_type"]
 
-    # delay = lambda: time.sleep(30)
     poll_delay = 0.5
     delay = lambda: time.sleep(poll_delay)
     cycle_time = 30
