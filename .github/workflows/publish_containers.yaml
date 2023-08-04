@@ -1,7 +1,9 @@
 # This is a workflow to build images
 name: Build Docker Images
 
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: [ "main" ]
 
 jobs:
   build-frontend:
