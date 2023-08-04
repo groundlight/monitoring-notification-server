@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Dropdown } from "./Dropdown";
-import { CameraSetupOverlay } from "./CameraSetupOverlay";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import { CameraDropdown } from "./CameraDropdown";
 
 export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDelete, onBack }:
     { detector: DetType, detectors: DetBaseType[], index: number, onSave: (e: { detector: DetType, isNewDetector: boolean, index: number }) => void, onDelete: (e: any) => void, onBack: () => void }
@@ -15,7 +13,6 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
     const [cycleTime, setCycleTime] = useState<number | undefined>(detector.config.cycle_time);
     const [pin, setPin] = useState<number | undefined>(detector.config.pin);
     const [pinActiveState, setPinActiveState] = useState<number | undefined>(detector.config.pin_active_state);
-    const [selectCamera, setSelectCamera] = useState<boolean>(false);
     const [vidConfig, setVidConfig] = useState<CameraConfigType>(detector.config.vid_config);
     const [imgSrcIdx, setImgSrcIdx] = useState<number>(0);
     const [image, setImage] = useState<string>(detector.config.image);
@@ -23,13 +20,6 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
 
     const isDetectorValid = newDetector ?
         name !== "" && query !== "" && !detectors.map(d => d.name).includes(name) : id !== "" && detectors.map(d => d.name).includes(name);
-
-    const handleCameraSelect = (cam: CameraType, index: number) => {
-        setVidConfig(cam.config);
-        setImage(cam.image);
-        setImgSrcIdx(index);
-        setSelectCamera(false);
-    }
 
     return (
         <div className="bg-blend-darken w-full h-full absolute backdrop-blur-lg top-0 left-0 flex pt-20 place-items-start justify-center" >

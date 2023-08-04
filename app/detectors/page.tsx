@@ -4,7 +4,7 @@ import { Dropdown } from "@/components/Dropdown";
 import { EditDetectorOverlay } from "@/components/EditDetectorOverlay";
 import { EditNotificationsOverlay } from "@/components/EditNotificationsOverlay";
 import { BASE_SERVER_URL } from "@/utils/config";
-import { ArrowPathIcon, ArrowRightIcon, ChevronDoubleDownIcon, Cog6ToothIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, Cog6ToothIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import ReactSwitch from "react-switch";
 
