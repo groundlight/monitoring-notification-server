@@ -1,5 +1,4 @@
 #syntax=docker/dockerfile:1.4
-# FROM node:18-alpine AS base
 FROM node:18-buster-slim AS base
 
 # Install dependencies only when needed

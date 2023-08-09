@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { Dropdown } from "./Dropdown";
+import { useState } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import ReactSwitch from "react-switch";
 import { PushStacklightConfigButton } from "./PushStacklightConfigButton";
@@ -33,8 +32,6 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
     const slackValid = !(slackNotification && (slackNotification.token === "" || slackNotification.channel_id === ""));
     const twilioValid = !(twilioNotification && (twilioNotification.account_sid === "" || twilioNotification.auth_token === "" || twilioNotification.from_number === "" || twilioNotification.to_number === ""));
     const emailValid = !(emailNotification && (emailNotification.from_email === "" || emailNotification.to_email === "" || emailNotification.email_password === ""));
-    // const stacklightValid = !(stacklightNotification && ((stacklightNotification.ip === "") && (stacklightNotification.id === "" || stacklightNotification.ssid === "" || stacklightNotification.password === "")));
-    // const stacklightValid = !(stacklightNotification && (stacklightNotification.id === "" && stacklightNotification.ip === ""));
     const stacklightValid = !(stacklightNotification && stacklightNotification.ip === "");
     const isDetectorValid = slackValid && twilioValid && emailValid && stacklightValid;
 

@@ -40,12 +40,6 @@ export const Nav = () => {
                 <div className="p-1 m-auto"></div>
                 <Cog6ToothIcon className="inline-block h-5 w-5" />
             </Link>
-            {/* <Link href="/api-key" className={link_style} >
-                Set API Key
-            </Link> */}
-            {/* <Link href="/download" className={link_style} >
-                Download Configuration
-            </Link> */}
             <div className="p-1"></div>
         </nav>
     );

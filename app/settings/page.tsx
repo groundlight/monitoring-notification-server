@@ -64,24 +64,6 @@ export default function Page() {
                     Save
                 </button>
             </div>
-            {/* <div className="p-10"></div>
-            <div className="text-2xl" >
-                Notification Settings:
-            </div>
-            <div className="p-2"></div>
-            <div className="text-xl" >
-                Enter your wifi credentials to enable Stacklight:
-            </div>
-            <div className="p-2"></div>
-            <div className="flex gap-2 mx-4">
-                <input className="border-2 border-gray-300 rounded-md p-2" type="text" placeholder="WiFi SSID" />
-                <input className="border-2 border-gray-300 rounded-md p-2" type="text" placeholder="WiFi Password" />
-                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => {
-                    // save email
-                }}>
-                    Save WiFi Config
-                </button>
-            </div> */}
             <div className="p-10"></div>
             <div className="text-2xl" >
                 Additional Settings:

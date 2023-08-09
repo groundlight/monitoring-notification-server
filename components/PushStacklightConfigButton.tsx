@@ -19,8 +19,6 @@ export const PushStacklightConfigButton = ({ valid, ssid, password, callback }:
         try {
             const port = await Serial.requestPort({ filters: filters });
             await port.open({ baudRate: 115200 });
-            // await port.open({ baudRate: 9600 });
-            // console.log(port.getInfo())
             return port;
         } catch (e) {
             console.error(e);

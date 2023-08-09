@@ -5,6 +5,7 @@ on: [push, workflow_dispatch]
 
 jobs:
   build-frontend:
+    # TODO: move these four repetitive jobs into a shared parameterized github action
     name: Build Frontend Image
     runs-on: ubuntu-latest
     steps:
@@ -33,13 +34,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Build and Push Image
+      - name: Build Image to verify it works but don't push
         uses: docker/build-push-action@v3
         with:
-          tags: docker.io/maxatgroundlight/detector-builder-frontend:latest
+          tags: docker.io/groundlight/monitoring-notification-server-frontend:latest
           platforms: linux/amd64,linux/arm64
           file: ./frontend.Dockerfile
-          push: true
+          push: false
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
   
@@ -72,13 +73,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Build and Push Image
+      - name: Build Image to verify it works but don't push
         uses: docker/build-push-action@v3
         with:
-          tags: docker.io/maxatgroundlight/detector-builder-frontend-armv7:latest
+          tags: docker.io/groundlight/monitoring-notification-server-frontend:armv7-latest
           platforms: linux/arm/v7
           file: ./frontend-armv7.Dockerfile
-          push: true
+          push: false
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
   
@@ -111,13 +112,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Build and Push Image
+      - name: Build Image to verify it works but don't push
         uses: docker/build-push-action@v3
         with:
-          tags: docker.io/maxatgroundlight/detector-builder-backend:latest
+          tags: docker.io/groundlight/monitoring-notification-server-backend:latest
           platforms: linux/amd64,linux/arm64
           file: ./backend.Dockerfile
-          push: true
+          push: false
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
@@ -153,10 +154,10 @@ jobs:
       - name: Build and Push Image
         uses: docker/build-push-action@v3
         with:
-          tags: docker.io/maxatgroundlight/detector-builder-backend-armv7:latest
+          tags: docker.io/groundlight/monitoring-notification-server-backend:armv7-latest
           platforms: linux/arm/v7
           file: ./backend-armv7.Dockerfile
-          push: true
+          push: false
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
       # go here (https://evilmartians.com/chronicles/build-images-on-github-actions-with-docker-layer-caching)
