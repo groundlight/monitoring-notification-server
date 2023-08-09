@@ -5,6 +5,7 @@ on: [push, workflow_dispatch]
 
 jobs:
   build-frontend:
+    # TODO: move these four repetitive jobs into a shared parameterized github action
     name: Build Frontend Image
     runs-on: ubuntu-latest
     steps:
@@ -33,7 +34,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Build and Push Image
+      - name: Build Image to verify it works but don't push
         uses: docker/build-push-action@v3
         with:
           tags: docker.io/groundlight/monitoring-notification-server-frontend:latest
@@ -72,7 +73,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Build and Push Image
+      - name: Build Image to verify it works but don't push
         uses: docker/build-push-action@v3
         with:
           tags: docker.io/groundlight/monitoring-notification-server-frontend:armv7-latest
@@ -111,7 +112,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Build and Push Image
+      - name: Build Image to verify it works but don't push
         uses: docker/build-push-action@v3
         with:
           tags: docker.io/groundlight/monitoring-notification-server-backend:latest
