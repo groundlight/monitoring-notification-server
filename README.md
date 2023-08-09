@@ -1,17 +1,17 @@
 <p align="center">
   <a href="https://nextjs-fastapi-starter.vercel.app/">
     <img src="https://avatars.githubusercontent.com/u/118213576?s=200&v=4" height="96">
-    <h3 align="center">Notification Server Example</h3>
+    <h3 align="center">Monitoring Notification Server</h3>
   </a>
 </p>
 
 <br/>
 
-## What is the Notification Server Example?
+## What is the Monitoring Notification Server?
 
-Our Notification Server Example is a server you can deploy anywhere to easily build Groundlight Detectors, and configure them to pull from custom image sources and post notifications.
+Our Monitoring Notification Server is a server you can deploy anywhere to easily build Groundlight Detectors, and configure them to pull from custom image sources and post notifications.
 
-The Notification Server Example has a simple web interface (depected below) that allows you to configure your detector, and a backend that runs on your device to pull images from your camera and post notifications.
+The Monitoring Notification Server has a simple web interface (depected below) that allows you to configure your detector, and a backend that runs on your device to pull images from your camera and post notifications.
 
 ### Intro Page
 
