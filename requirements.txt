@@ -1,6 +1,7 @@
 fastapi==0.95.2
 uvicorn[standard]
 groundlight
+opencv-python==4.8.0.74
 framegrab
 pypylon
 slack_sdk
