@@ -1,5 +1,5 @@
 {
-  "name": "notification-server-example",
+  "name": "monitoring-notification-server",
   "version": "0.1.0",
   "private": true,
   "scripts": {

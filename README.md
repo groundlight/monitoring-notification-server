@@ -28,13 +28,13 @@ The Notification Server Example has a simple web interface (depected below) that
 ```yaml
 services:
   frontend:
-    image: docker.io/groundlight/notification-server-example-frontend:latest
+    image: docker.io/groundlight/monitoring-notification-server-frontend:latest
     ports:
       - "3000:3000"
     depends_on:
       - backend
   backend:
-    image: docker.io/groundlight/notification-server-example-backend:latest
+    image: docker.io/groundlight/monitoring-notification-server-backend:latest
     ports:
       - "8000:8000"
     devices:
@@ -56,13 +56,13 @@ services:
 ```yaml
 services:
   frontend:
-    image: docker.io/groundlight/notification-server-example-frontend:armv7-latest
+    image: docker.io/groundlight/monitoring-notification-server-frontend:armv7-latest
     ports:
       - "3000:3000"
     depends_on:
       - backend
   backend:
-    image: docker.io/groundlight/notification-server-example-backend:armv7-latest
+    image: docker.io/groundlight/monitoring-notification-server-backend:armv7-latest
     ports:
       - "8000:8000"
     devices:

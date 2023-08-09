@@ -36,7 +36,7 @@ jobs:
       - name: Build and Push Image
         uses: docker/build-push-action@v3
         with:
-          tags: docker.io/groundlight/notification-server-example-frontend:latest
+          tags: docker.io/groundlight/monitoring-notification-server-frontend:latest
           platforms: linux/amd64,linux/arm64
           file: ./frontend.Dockerfile
           push: false
@@ -75,7 +75,7 @@ jobs:
       - name: Build and Push Image
         uses: docker/build-push-action@v3
         with:
-          tags: docker.io/groundlight/notification-server-example-frontend:armv7-latest
+          tags: docker.io/groundlight/monitoring-notification-server-frontend:armv7-latest
           platforms: linux/arm/v7
           file: ./frontend-armv7.Dockerfile
           push: false
@@ -114,7 +114,7 @@ jobs:
       - name: Build and Push Image
         uses: docker/build-push-action@v3
         with:
-          tags: docker.io/groundlight/notification-server-example-backend:latest
+          tags: docker.io/groundlight/monitoring-notification-server-backend:latest
           platforms: linux/amd64,linux/arm64
           file: ./backend.Dockerfile
           push: false
@@ -153,7 +153,7 @@ jobs:
       - name: Build and Push Image
         uses: docker/build-push-action@v3
         with:
-          tags: docker.io/groundlight/notification-server-example-backend:armv7-latest
+          tags: docker.io/groundlight/monitoring-notification-server-backend:armv7-latest
           platforms: linux/arm/v7
           file: ./backend-armv7.Dockerfile
           push: false
