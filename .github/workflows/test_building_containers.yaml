@@ -5,6 +5,7 @@ on: [push, workflow_dispatch]
 
 jobs:
   build-frontend:
+    # TODO: move these four repetitive jobs into a shared parameterized github action
     name: Build Frontend Image
     runs-on: ubuntu-latest
     steps:
