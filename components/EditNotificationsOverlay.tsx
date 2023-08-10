@@ -24,7 +24,7 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
 	} | undefined>(detector.config.notifications?.email);
     const [stacklightNotification, setStacklightNotification] = useState<{
 		ip?: string;
-		id: string;
+		id?: string;
 		ssid?: string;
 		password?: string;
 	} | undefined>(detector.config.notifications?.stacklight);

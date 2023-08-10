@@ -8,7 +8,7 @@ export default function Home() {
 	const [isApiKey, setIsApiKey] = useState<boolean>(false);
 	const [isImgSrc, setIsImgSrc] = useState<boolean>(false);
 	const [isDet, setIsDet] = useState<boolean>(false);
-	const [introCompleted, setIntroCompleted] = useState<boolean>(true);
+	const [introCompleted, setIntroCompleted] = useState<boolean>(false);
 
 	useEffect(() => {
 		// fetch detector configs

@@ -24,7 +24,7 @@ type NotificationOptionsType = {
 	};
 	stacklight?: {
 		ip?: string;
-		id: string;
+		id?: string;
 		ssid?: string;
 		password?: string;
 	};

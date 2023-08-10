@@ -71,8 +71,27 @@ export default function Home() {
 			body: JSON.stringify({
 				detectors: detectors_to_save,
 			}),
-		}).then(() => {
-			void fetchConfig();
+		})
+		.then((res) => res.json())
+		.then((data) => {
+			setDetectors(data.detectors as DetType[] ? data.detectors as DetType[] : []);
+			if (data?.detectors) {
+				const detIdxByGroup: number[][] = [];
+				const detByGroup = (data.detectors as DetType[]).reduce((acc: DetType[][], cur: DetType, old_idx: number) => {
+					const idx = acc.reduce((pre: number, group: DetType[], idx) => group[0].name === cur.name ? idx : pre, -1);
+					if (idx !== -1) {
+						acc[idx].push(cur);
+						detIdxByGroup[idx].push(old_idx);
+					} else {
+						acc.push([cur]);
+						detIdxByGroup.push([old_idx]);
+					}
+					return acc;
+				}, []);
+				setDetectorIndiciesByGroup(detIdxByGroup);
+				setDetectorsByGroup(detByGroup);
+			}
+			return data;
 		});
 	};
 
