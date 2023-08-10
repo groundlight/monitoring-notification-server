@@ -52,6 +52,13 @@ app.WEBSOCKET_METADATA_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
 app.WEBSOCKET_CANCEL_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
 app.WEBSOCKET_RESPONSE_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
 
+try: # try to load config
+    with open("./api/gl_config.json", "r") as f:
+        app.config = json.load(f)
+        f.close()
+except:
+    app.config = {}
+
 def get_base64_img(g: FrameGrabber) -> Union[str, None]:
     try:
         return base64.b64encode(cv2.imencode(".jpg", g.grab())[1]).decode("utf-8")
@@ -62,10 +69,13 @@ def get_base64_img(g: FrameGrabber) -> Union[str, None]:
 def fetch_config() -> dict:
     with open("./api/gl_config.json", "r") as f:
         return json.load(f)
+    # return app.config
 
 def store_config(config: dict):
+    app.config = config
     with open("./api/gl_config.json", "w") as f:
         json.dump(config, f, indent=4)
+        f.close()
 
 def set_in_config(params: dict):
     config = fetch_config()
@@ -74,13 +84,14 @@ def set_in_config(params: dict):
     store_config(config)
 
 def start_processes(api_key, endpoint, detectors):
-    # logger.logger.setLevel(10)
     app.DETECTOR_CONFIG = {
         "api_key": api_key,
         "endpoint": endpoint,
         "detectors": detectors,
     }
     detectors = list(filter(lambda d: d["config"]["enabled"], detectors))
+    if len(detectors) == 0:
+        return
     app.DETECTOR_PHOTO_QUEUES = [multiprocessing.Queue(1) for _ in detectors]
     app.DETECTOR_GRAB_NOTIFY_QUEUES = [multiprocessing.Queue(1) for _ in detectors]
     app.DETECTOR_WEBSOCKET_RESPONSE_QUEUES = [multiprocessing.Queue(1) for _ in detectors]
@@ -198,17 +209,23 @@ def make_new_detector(detector: Detector):
         return "Failed"
 
 @app.post("/api/config/detectors")
-async def post_detectors(detectors: DetectorList):
+def post_detectors(detectors: DetectorList):
     config = fetch_config()
-    config["detectors"] = json.loads(detectors.json())["detectors"]
-    endpoint = config["endpoint"] if "endpoint" in config else None
-    api_key = config["api_key"] if "api_key" in config else None
+    try:
+        config["detectors"] = json.loads(detectors.json())["detectors"]
+        endpoint = config["endpoint"] if "endpoint" in config else None
+        api_key = config["api_key"] if "api_key" in config else None
+    except Exception as e:
+        print(e)
+        return "Failed"
 
     # stop all processes
     for p in app.DETECTOR_PROCESSES:
-        p.terminate()
+        if p.is_alive():
+            # p.terminate()
+            p.kill()
     
-    # # start new processes
+    # start new processes
     print("Loading config...")
     try:
         start_processes(api_key, endpoint, config["detectors"])
@@ -291,24 +308,29 @@ def set_config_post_method(config_str: dict):
 
 async def websocket_queue_runner(logger):
     while True:
-        for i in range(len(app.DETECTOR_GRAB_NOTIFY_QUEUES)):
-            if not app.DETECTOR_GRAB_NOTIFY_QUEUES[i].empty():
-                # print("Taking photo")
-                logger.error("Taking photo")
-                app.DETECTOR_GRAB_NOTIFY_QUEUES[i].get_nowait()
-                d = list(filter(lambda d: d["config"]["enabled"], app.DETECTOR_CONFIG["detectors"]))[i]
-                img = app.ALL_GRABBERS[d["config"]["imgsrc_idx"]].grab()
-                app.DETECTOR_PHOTO_QUEUES[i].put(img)
-        while not app.WEBSOCKET_RESPONSE_QUEUE.empty():
-            res = app.WEBSOCKET_RESPONSE_QUEUE.get()
-            det_id = res["det_id"]
-            det_idx = res["det_idx"]
-            img_idx = res["imgsrc_idx"]
-            if len(app.DETECTOR_CONFIG["detectors"]) < det_idx \
-                and app.DETECTOR_CONFIG["detectors"][det_idx]["id"] == det_id \
-                and app.DETECTOR_CONFIG["detectors"][det_idx]["config"]["imgsrc_idx"] == img_idx:
-
-                app.DETECTOR_WEBSOCKET_RESPONSE_QUEUES[det_idx].put_nowait(res)
+        try:
+            for i in range(len(app.DETECTOR_GRAB_NOTIFY_QUEUES)):
+                if not app.DETECTOR_GRAB_NOTIFY_QUEUES[i].empty():
+                    # print("Taking photo")
+                    logger.error("Taking photo")
+                    app.DETECTOR_GRAB_NOTIFY_QUEUES[i].get_nowait()
+                    d = list(filter(lambda d: d["config"]["enabled"], app.DETECTOR_CONFIG["detectors"]))[i]
+                    img = app.ALL_GRABBERS[d["config"]["imgsrc_idx"]].grab()
+                    app.DETECTOR_PHOTO_QUEUES[i].put_nowait(img)
+            while not app.WEBSOCKET_RESPONSE_QUEUE.empty():
+                res = app.WEBSOCKET_RESPONSE_QUEUE.get()
+                det_id = res["det_id"]
+                det_idx = res["det_idx"]
+                img_idx = res["imgsrc_idx"]
+                if len(app.DETECTOR_CONFIG["detectors"]) < det_idx \
+                    and app.DETECTOR_CONFIG["detectors"][det_idx]["id"] == det_id \
+                    and app.DETECTOR_CONFIG["detectors"][det_idx]["config"]["imgsrc_idx"] == img_idx:
+                    try:
+                        app.DETECTOR_WEBSOCKET_RESPONSE_QUEUES[det_idx].put_nowait(res)
+                    except:
+                        logger.error("Failed to send websocket response")
+        except Exception as e:
+            logger.error(f"Exception in websocket queue runner: {e}")
 
         await asyncio.sleep(.01)
 
@@ -316,6 +338,13 @@ async def websocket_queue_runner(logger):
 async def app_startup():
     loop = asyncio.get_event_loop()
     loop.create_task(websocket_queue_runner(logger.logger))
+
+@app.on_event("shutdown")
+async def app_shutdown():
+    for p in app.DETECTOR_PROCESSES:
+        if p.is_alive():
+            # p.terminate()
+            p.kill()
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

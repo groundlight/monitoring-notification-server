@@ -69,7 +69,8 @@ def run_process(idx: int, logger, detector: dict, api_key: str, endpoint: str,
     logger.error(f"Starting detector {detector['id']}...")
 
     while(True):
-        notify_queue.put("fetch")
+        if not notify_queue.full() and not photo_queue.full():
+            notify_queue.put_nowait("fetch")
         try:
             frame = photo_queue.get(timeout=30)
         except:
@@ -83,32 +84,36 @@ def run_process(idx: int, logger, detector: dict, api_key: str, endpoint: str,
         has_cancelled = False
 
         # send to local review
-        websocket_metadata_queue.put({
-            "uuid": uuid,
-            "det_id": detector["id"],
-            "det_name": detector["name"],
-            "det_query": detector["query"],
-            "query_id": query.id,
-            "det_idx": idx,
-            "imgsrc_idx": detector["config"]["imgsrc_idx"],
-            "image": frame_to_base64(frame),
-        })
+        if not websocket_metadata_queue.full():
+            websocket_metadata_queue.put_nowait({
+                "uuid": uuid,
+                "det_id": detector["id"],
+                "det_name": detector["name"],
+                "det_query": detector["query"],
+                "query_id": query.id,
+                "det_idx": idx,
+                "imgsrc_idx": detector["config"]["imgsrc_idx"],
+                "image": frame_to_base64(frame),
+            })
         
         # poll for result until timeout
         while should_continue():
             query = gl.get_image_query(query.id)
-            if not has_cancelled and ((query.result.confidence is not None and query.result.confidence > conf) or (query.result.confidence is None and query.result.label is not None and query.result.label != "QUERY_FAIL" )):
-                websocket_cancel_queue.put({
-                    "cancel": True,
-                    "confidence": query.result.confidence,
-                    "uuid": uuid,
-                    "det_id": detector["id"],
-                    "det_name": detector["name"],
-                    "det_query": detector["query"],
-                    "det_idx": idx,
-                    "imgsrc_idx": detector["config"]["imgsrc_idx"],
-                    "label": query.result.label,
-                })
+            if not has_cancelled and (
+                (query.result.confidence is not None and query.result.confidence > conf)
+                or (query.result.confidence is None and query.result.label is not None and query.result.label != "QUERY_FAIL" )):
+                if not websocket_cancel_queue.full():
+                    websocket_cancel_queue.put_nowait({
+                        "cancel": True,
+                        "confidence": query.result.confidence,
+                        "uuid": uuid,
+                        "det_id": detector["id"],
+                        "det_name": detector["name"],
+                        "det_query": detector["query"],
+                        "det_idx": idx,
+                        "imgsrc_idx": detector["config"]["imgsrc_idx"],
+                        "label": query.result.label,
+                    })
                 has_cancelled = True
                 if "notifications" in detector["config"]:
                     try:
@@ -121,9 +126,9 @@ def run_process(idx: int, logger, detector: dict, api_key: str, endpoint: str,
         
         retry_time = time.time() + cycle_time
         
-        if not has_cancelled:
+        if not has_cancelled and not websocket_cancel_queue.full():
             # Cancel previous query if it hasn't been cancelled yet
-            websocket_cancel_queue.put({
+            websocket_cancel_queue.put_nowait({
                 "cancel": True,
                 "confidence": query.result.confidence,
                 "uuid": uuid,

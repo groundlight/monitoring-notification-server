@@ -100,6 +100,7 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                                 cycle_time: cycleTime,
                                 pin,
                                 pin_active_state: pinActiveState,
+                                notifications: detector.config.notifications,
                             }
                         },
                         index: index,
