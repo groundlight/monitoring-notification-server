@@ -52,13 +52,6 @@ app.WEBSOCKET_METADATA_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
 app.WEBSOCKET_CANCEL_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
 app.WEBSOCKET_RESPONSE_QUEUE: multiprocessing.Queue = multiprocessing.Queue(10)
 
-try: # try to load config
-    with open("./api/gl_config.json", "r") as f:
-        app.config = json.load(f)
-        f.close()
-except:
-    app.config = {}
-
 def get_base64_img(g: FrameGrabber) -> Union[str, None]:
     try:
         return base64.b64encode(cv2.imencode(".jpg", g.grab())[1]).decode("utf-8")
@@ -69,10 +62,8 @@ def get_base64_img(g: FrameGrabber) -> Union[str, None]:
 def fetch_config() -> dict:
     with open("./api/gl_config.json", "r") as f:
         return json.load(f)
-    # return app.config
 
 def store_config(config: dict):
-    app.config = config
     with open("./api/gl_config.json", "w") as f:
         json.dump(config, f, indent=4)
         f.close()
@@ -222,7 +213,6 @@ def post_detectors(detectors: DetectorList):
     # stop all processes
     for p in app.DETECTOR_PROCESSES:
         if p.is_alive():
-            # p.terminate()
             p.kill()
     
     # start new processes
@@ -343,7 +333,6 @@ async def app_startup():
 async def app_shutdown():
     for p in app.DETECTOR_PROCESSES:
         if p.is_alive():
-            # p.terminate()
             p.kill()
 
 @app.websocket("/ws")
