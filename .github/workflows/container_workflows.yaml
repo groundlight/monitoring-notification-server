@@ -62,5 +62,5 @@ jobs:
           file: ${{ matrix.dockerfile }}
           # push if the target is main
           push: ${{ github.ref == 'refs/heads/main' }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.target }}
+          cache-to: type=gha,scope=${{ matrix.target }},mode=max
