@@ -9,7 +9,7 @@ export default function Page() {
     const [jsonDataUrl, setJsonDataUrl] = useState<string>("");
     const [yamlDataUrl, setYamlDataUrl] = useState<string>("");
 
-    useEffect(() => {
+    const updateState = () => {
         // update json data url
         fetch(BASE_SERVER_URL + "/api/config-json-pretty").then((res) => res.json()).then((data) => {
           setJsonDataUrl(`data:application/json,${encodeURIComponent(data)}`);
@@ -22,6 +22,10 @@ export default function Page() {
         fetch(BASE_SERVER_URL + "/api/config").then((res) => res.json()).then((data) => {
             setApiKeyTemp(data.api_key && data.api_key != "" ? (data.api_key as string).substring(0, 15) + "..." : "");
         });
+    }
+
+    useEffect(() => {
+        updateState();
     }, []);
 
     const saveApiKey = (apiKey: string) => {
@@ -34,6 +38,8 @@ export default function Page() {
             body: JSON.stringify({
                 api_key: apiKey,
             }),
+        }).then(() => {
+            updateState();
         });
     }
 
@@ -47,6 +53,8 @@ export default function Page() {
             body: JSON.stringify({
                 config: config,
             }),
+        }).then(() => {
+            updateState();
         });
     }
 
