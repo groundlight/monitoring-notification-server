@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Dropdown } from "./Dropdown";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import useEscape from "@/hooks/useEscape";
 
 export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDelete, onBack }:
     { detector: DetType, detectors: DetBaseType[], index: number, onSave: (e: { detector: DetType, isNewDetector: boolean, index: number }) => void, onDelete: (e: any) => void, onBack: () => void }
 ) => {
+    useEscape(onBack);
     const [newDetector, setNewDetector] = useState<boolean>(false);
     const [name, setName] = useState<string>(detector.name);
     const [query, setQuery] = useState<string>(detector.query);

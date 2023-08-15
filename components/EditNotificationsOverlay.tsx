@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import ReactSwitch from "react-switch";
 import { PushStacklightConfigButton } from "./PushStacklightConfigButton";
+import useEscape from "@/hooks/useEscape";
+import { Dropdown } from "./Dropdown";
+import Link from "next/link";
 
 export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
     { detector: DetType, detectors: DetBaseType[], index: number, onSave: (e: { config: NotificationOptionsType, index: number }) => void, onBack: () => void }
 ) => {
+    useEscape(onBack);
     const [condition, setCondition] = useState<NotificationCondition>(detector.config.notifications?.condition || "FAIL");
     const [slackNotification, setSlackNotification] = useState<{
 		token: string;
@@ -28,6 +32,7 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
 		ssid?: string;
 		password?: string;
 	} | undefined>(detector.config.notifications?.stacklight);
+    const [stacklightConfigSelected, setStacklightConfigSelected] = useState<string>("Setup with IP Addr");
 
     const slackValid = !(slackNotification && (slackNotification.token === "" || slackNotification.channel_id === ""));
     const twilioValid = !(twilioNotification && (twilioNotification.account_sid === "" || twilioNotification.auth_token === "" || twilioNotification.from_number === "" || twilioNotification.to_number === ""));
@@ -37,7 +42,7 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
 
     return (
         <div className="bg-blend-darken w-full h-full absolute backdrop-blur-lg top-0 left-0 flex pt-5 place-items-start justify-center" >
-            <div className="flex flex-col items-center shadow-md bg-white rounded-md p-5 w-[40%] relative">
+            <div className="flex flex-col items-center shadow-md bg-white rounded-md p-5 w-[40%] relative overflow-y-scroll overflow-x-visible max-h-[calc(100%-40px)]">
                 <div className="flex flex-col gap-2 relative">
                     <div className="flex gap-2">
                         <div className="font-bold place-self-center">Detector Name:</div>
@@ -182,6 +187,9 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                             </div>
                         </>
                     }
+                    <div className="p-2"></div>
+                    <div className="font-bold place-self-center">Plugins:</div>
+                    <div className="p-1"></div>
                     <div className="flex gap-2">
                         <div className="font-bold  place-self-center">Enable Stacklight:</div>
                         <ReactSwitch checked={!!stacklightNotification} onChange={(checked) => {
@@ -198,68 +206,85 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                     {
                         stacklightNotification &&
                         <>
-                            {/* <div className="flex gap-2">
-                                <div className="font-bold  place-self-center">Stacklight ID:</div>
-                                <input className={`border-2 ${stacklightValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Stacklight ID" value={stacklightNotification.id} onChange={(e) => setStacklightNotification({
-                                    ...stacklightNotification,
-                                    id: e.target.value,
-                                })} />
-                            </div> */}
-                            <div className="flex gap-2">
-                                <div className="font-bold  place-self-center">Stacklight IP:</div>
-                                <input className={`border-2 ${stacklightValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Stacklight IP" value={stacklightNotification.ip} onChange={(e) => setStacklightNotification({
-                                    ...stacklightNotification,
-                                    ip: e.target.value,
-                                })} />
-                            </div>
-                            <div className="flex gap-2">
-                                <div className="font-bold  place-self-center">Stacklight SSID:</div>
-                                <input className={`border-2 ${stacklightValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Stacklight SSID" value={stacklightNotification.ssid} onChange={(e) => setStacklightNotification({
-                                    ...stacklightNotification,
-                                    ssid: e.target.value,
-                                })} />
-                            </div>
-                            <div className="flex gap-2">
-                                <div className="font-bold  place-self-center">Stacklight Password:</div>
-                                <input className={`border-2 ${stacklightValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Stacklight Password" value={stacklightNotification.password} onChange={(e) => setStacklightNotification({
-                                    ...stacklightNotification,
-                                    password: e.target.value,
-                                })} />
-                            </div>
-                            <div className="ml-auto">
-                                <PushStacklightConfigButton valid={
-                                    stacklightNotification.ssid !== undefined && stacklightNotification.ssid !== "" && stacklightNotification.password !== undefined && stacklightNotification.password !== ""
-                                } ssid={stacklightNotification.ssid || ""} password={stacklightNotification.password || ""} callback={(worked, ip) => {
-                                    if (worked) {
-                                        setStacklightNotification({
+                            <Dropdown options={["Setup with IP Addr", "Initial setup with USB"]} selected={stacklightConfigSelected} setSelected={setStacklightConfigSelected} />
+                            <div className="p-1"></div>
+                            {
+                                stacklightConfigSelected === "Setup with IP Addr" ?
+                                <>
+                                    <div className="flex gap-2">
+                                        <div className="font-bold  place-self-center">Stacklight IP:</div>
+                                        <input className={`border-2 ${stacklightValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Stacklight IP" value={stacklightNotification.ip} onChange={(e) => setStacklightNotification({
                                             ...stacklightNotification,
-                                            ip: ip,
-                                        });
+                                            ip: e.target.value,
+                                        })} />
+                                    </div>
+                                </>
+                                :
+                                <>
+                                    {
+                                        !!navigator.serial ?
+                                        <>
+                                            <div className="flex gap-2">
+                                                <div className="font-bold  place-self-center">Stacklight SSID:</div>
+                                                <input className={`border-2 ${stacklightValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Stacklight SSID" value={stacklightNotification.ssid} onChange={(e) => setStacklightNotification({
+                                                    ...stacklightNotification,
+                                                    ssid: e.target.value,
+                                                })} />
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <div className="font-bold  place-self-center">Stacklight Password:</div>
+                                                <input className={`border-2 ${stacklightValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Stacklight Password" value={stacklightNotification.password} onChange={(e) => setStacklightNotification({
+                                                    ...stacklightNotification,
+                                                    password: e.target.value,
+                                                })} />
+                                            </div>
+                                            <div className="ml-auto">
+                                                <PushStacklightConfigButton valid={
+                                                    stacklightNotification.ssid !== undefined && stacklightNotification.ssid !== "" && stacklightNotification.password !== undefined && stacklightNotification.password !== ""
+                                                } ssid={stacklightNotification.ssid || ""} password={stacklightNotification.password || ""} callback={(worked, ip) => {
+                                                    if (worked) {
+                                                        setStacklightNotification({
+                                                            ...stacklightNotification,
+                                                            ip: ip,
+                                                        });
+                                                    }
+                                                }} />
+                                            </div>
+                                        </>
+                                        :
+                                        <div className="ml-auto">
+                                            <a href={"https://code.groundlight.ai/groundlight-embedded-uploader/stacklight"} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex gap-1 items-center" >
+                                                Setup Stacklight Here <ArrowRightIcon className="h-5 w-5" />
+                                            </a>
+                                        </div>
                                     }
-                                }} />
-                            </div>
+                                </>
+                            }
                         </>
                     }
                     
                 </div>
-                <div className="p-8"></div>
-                <button className={`${isDetectorValid ? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500"} text-white font-bold py-2 px-4 rounded absolute bottom-2 right-2`} disabled={!isDetectorValid} onClick={() => {
-                    onSave({
-                        config: {
-                            condition: condition,
-                            slack: slackNotification,
-                            twilio: twilioNotification,
-                            email: emailNotification,
-                            stacklight: stacklightNotification,
-                        },
-                        index: index,
-                    })
-                }}>
-                    Save
-                </button>
-                <button className="absolute top-0 -left-12 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" onClick={() => onBack()} >
-                    <ArrowLeftIcon className="h-5 w-5" />
-                </button>
+                <div className="p-4"></div>
+                <div className="flex gap-2 justify-between w-full">
+                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md flex place-items-center gap-1" onClick={() => onBack()} >
+                        <ArrowLeftIcon className="h-5 w-5" /> {"Back"}
+                    </button>
+
+                    <button className={`${isDetectorValid ? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500"} text-white font-bold py-2 px-4 rounded`} disabled={!isDetectorValid} onClick={() => {
+                        onSave({
+                            config: {
+                                condition: condition,
+                                slack: slackNotification,
+                                twilio: twilioNotification,
+                                email: emailNotification,
+                                stacklight: stacklightNotification,
+                            },
+                            index: index,
+                        })
+                    }}>
+                        Save
+                    </button>
+                </div>
             </div>
         </div>
     );
