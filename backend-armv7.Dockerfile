@@ -13,4 +13,4 @@ COPY ./api /app/api
 
 EXPOSE 8000
 
-CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000", " --log-config", "api/logging_config.yaml"]
+CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000", "--log-config", "api/logging_config.yaml"]
