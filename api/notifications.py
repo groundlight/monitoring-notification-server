@@ -1,3 +1,4 @@
+import logging
 import smtplib, ssl
 import cv2
 
@@ -12,9 +13,9 @@ from slack_sdk import WebClient
 import requests
 import os
 
-def send_notifications(det_name: str, query: str, label: str, options: dict, image, logger):
+def send_notifications(det_name: str, query: str, label: str, options: dict, image, logger: logging.Logger):
     if "condition" not in options:
-        logger.error("No condition provided")
+        logger.warn("No condition provided")
         return
     condition = options["condition"].upper() # "PASS" or "FAIL"
     if label == "YES":
@@ -23,24 +24,24 @@ def send_notifications(det_name: str, query: str, label: str, options: dict, ima
         label = "FAIL"
 
     if "stacklight" in options:
-        logger.error("Sending to stacklight")
+        logger.info("Sending to stacklight")
         stacklight_options = options["stacklight"]
         post_to_stacklight(det_name, query, label, stacklight_options)
 
     if not ((condition == "PASS" and label == "PASS") or (condition == "FAIL" and label == "FAIL")):
-        logger.error("Condition not met")
+        logger.info("Condition not met")
         return
     
     if "email" in options:
-        logger.error("Sending email")
+        logger.info("Sending email")
         email_options = options["email"]
         send_email(det_name, query, image, label, email_options)
     if "twilio" in options:
-        logger.error("Sending sms")
+        logger.info("Sending sms")
         twilio_options = options["twilio"]
         send_sms(det_name, query, label, twilio_options)
     if "slack" in options:
-        logger.error("Sending slack")
+        logger.info("Sending slack")
         slack_options = options["slack"]
         send_slack(det_name, query, label, slack_options)
 

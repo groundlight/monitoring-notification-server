@@ -17,7 +17,7 @@ def frame_to_base64(frame) -> str:
     jpg_as_text = jpg.decode('utf-8')
     return jpg_as_text
 
-def push_label_result(api_key: str, endpoint: str, query_id: str, label: str):
+def push_label_result(api_key: str, endpoint: str, query_id: str, label: str, logger: logging.Logger):
     gl = groundlight.Groundlight(api_token=api_key, endpoint=endpoint)
     # gl.add_label(query_id, label)
     label = label.upper()
@@ -28,9 +28,9 @@ def push_label_result(api_key: str, endpoint: str, query_id: str, label: str):
     elif label == "FAIL":
         gl.add_label(query_id, "NO")
     else:
-        print(f"Invalid response: {label}")
+        logger.warn(f"Invalid response: {label}")
 
-def run_process(idx: int, logger, detector: dict, api_key: str, endpoint: str,
+def run_process(idx: int, logger: logging.Logger, detector: dict, api_key: str, endpoint: str,
                 notify_queue: multiprocessing.Queue,
                 photo_queue: multiprocessing.Queue,
                 websocket_metadata_queue: multiprocessing.Queue,
@@ -66,7 +66,7 @@ def run_process(idx: int, logger, detector: dict, api_key: str, endpoint: str,
     retry_time = time.time() + cycle_time
     should_continue = lambda: time.time() < retry_time
 
-    logger.error(f"Starting detector {detector['id']}...")
+    logger.info(f"Starting detector {detector['id']}...")
 
     while(True):
         try:
@@ -75,7 +75,7 @@ def run_process(idx: int, logger, detector: dict, api_key: str, endpoint: str,
             try:
                 frame = photo_queue.get(timeout=30)
             except:
-                print("No frame received from queue.")
+                logger.warn("No frame received from queue.")
                 continue
             uuid = uuid4().hex
 
@@ -118,11 +118,11 @@ def run_process(idx: int, logger, detector: dict, api_key: str, endpoint: str,
                     has_cancelled = True
                     if "notifications" in detector["config"]:
                         try:
-                            logger.error(f"Sending notifications for detector {detector['id']}...")
-                            # logger.error(detector["config"]["notifications"])
+                            logger.info(f"Sending notifications for detector {detector['id']}...")
+                            # logger.info(detector["config"]["notifications"])
                             send_notifications(detector["name"], detector["query"], query.result.label, detector["config"]["notifications"], frame, logger)
                         except Exception as e:
-                            print(f"Error sending notifications: {e}")
+                            logger.error(f"Error sending notifications: {e}")
                 delay()
             
             retry_time = time.time() + cycle_time
@@ -140,6 +140,5 @@ def run_process(idx: int, logger, detector: dict, api_key: str, endpoint: str,
                     "imgsrc_idx": detector["config"]["imgsrc_idx"],
                 })
         except Exception as e:
-            print(f"Error: {e}")
             logger.error(f"Error: {e}")
             continue
