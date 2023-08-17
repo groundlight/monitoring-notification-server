@@ -107,7 +107,7 @@ def make_grabbers():
     grabbers: List[framegrab.grabber.WebcamFrameGrabber | framegrab.grabber.BaslerUSBFrameGrabber | framegrab.grabber.RealSenseFrameGrabber | framegrab.grabber.RTSPFrameGrabber] = []
     config = fetch_config()
     if "image_sources" not in config:
-        print("Failed to make grabbers")
+        logger.logger.warn("Failed to make grabbers")
         return grabbers
 
     for src in config["image_sources"]:
@@ -115,27 +115,27 @@ def make_grabbers():
             g = framegrab.FrameGrabber.create_grabber(src)
             grabbers.append(g)
         except:
-            print(f"Failed to create image source [{src['name']}]")
+            logger.logger.warn(f"Failed to create image source [{src['name']}]")
             grabbers.append(FakeDetector(src))
 
     return grabbers
 
 def startup():
-    print("Loading config...")
+    logger.logger.info("Loading config...")
     try:
         config = fetch_config()
         detectors = config["detectors"] if "detectors" in config else []
         api_key = config["api_key"] if "api_key" in config else None
         endpoint = config["endpoint"] if "endpoint" in config else None
     except:
-        print("Failed to load config")
+        logger.logger.warn("Failed to load config")
         app.DETECTOR_PROCESSES = []
         store_config({})
 
     try:
         start_processes(api_key, endpoint, detectors)
     except:
-        print("Failed to start processes")
+        logger.logger.warn("Failed to start processes")
 
     app.ALL_GRABBERS: List[FrameGrabber] = make_grabbers()
 
@@ -145,8 +145,8 @@ def startup():
                 img = get_base64_img(app.ALL_GRABBERS[d["config"]["imgsrc_idx"]])
                 if img:
                     d["config"]["image"] = img
-    except:
-        print("Failed to load images")
+    except Exception as e:
+        logger.logger.error("Failed to load images, error: " + str(e))
 
 startup()
 
@@ -207,7 +207,7 @@ def post_detectors(detectors: DetectorList):
         endpoint = config["endpoint"] if "endpoint" in config else None
         api_key = config["api_key"] if "api_key" in config else None
     except Exception as e:
-        print(e)
+        logger.logger.error("Failed to parse detectors, error: " + str(e))
         return "Failed"
 
     # stop all processes
@@ -216,11 +216,11 @@ def post_detectors(detectors: DetectorList):
             p.kill()
     
     # start new processes
-    print("Loading config...")
+    logger.logger.info("Loading config...")
     try:
         start_processes(api_key, endpoint, config["detectors"])
     except:
-        print("Failed to start processes")
+        logger.logger.warn("Failed to start processes")
         pass
 
     store_config(config)
@@ -301,8 +301,7 @@ async def websocket_queue_runner(logger):
         try:
             for i in range(len(app.DETECTOR_GRAB_NOTIFY_QUEUES)):
                 if not app.DETECTOR_GRAB_NOTIFY_QUEUES[i].empty():
-                    # print("Taking photo")
-                    logger.error("Taking photo")
+                    logger.info("Taking photo")
                     app.DETECTOR_GRAB_NOTIFY_QUEUES[i].get_nowait()
                     d = list(filter(lambda d: d["config"]["enabled"], app.DETECTOR_CONFIG["detectors"]))[i]
                     img = app.ALL_GRABBERS[d["config"]["imgsrc_idx"]].grab()
@@ -337,7 +336,7 @@ async def app_shutdown():
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    print("started")
+    logger.logger.info("websocket started")
     await websocket.accept()
 
     config = fetch_config()
@@ -361,18 +360,17 @@ async def websocket_endpoint(websocket: WebSocket):
                 data = data_task.result()
                 data_copy = data.copy()
                 data_copy["image"] = None
-                print(data_copy)
+                logger.logger.info(data_copy)
                 try:
-                    push_label_result(api_key, endpoint, data["query_id"], data["label"])
+                    push_label_result(api_key, endpoint, data["query_id"], data["label"], logger.logger)
                 except Exception as e:
-                    print("Exception while pushing label result:")
-                    print(e)
+                    logger.logger.error("Exception while pushing label result:" + str(e))
                 data_task = asyncio.create_task(websocket.receive_json())
 
             await asyncio.sleep(0.01)
 
     except Exception as e:
-        print(e)
+        logger.logger.error(e)
     finally:
         data_task.cancel()
         if websocket.application_state != WebSocketState.DISCONNECTED:
