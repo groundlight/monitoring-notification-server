@@ -77,6 +77,14 @@ services:
 
 2. Run `docker-compose up` in the same directory as the `docker-compose.yml` file.
 
+## Running with AWS Greengrass
+
+1. Create a new Greengrass Component
+2. Select "Enter recipe as YAML"
+3. Paste the YAML from [greengrass-recipe.yaml](./greengrass-recipe.yaml) into the text box
+4. Click "Create component"
+5. Click "Deploy" to deploy the component to your Greengrass group
+
 ## Building from Source
 
 1. Install [Node.js](https://nodejs.org/en/download/) and [Python 3.8+](https://www.python.org/downloads/).
