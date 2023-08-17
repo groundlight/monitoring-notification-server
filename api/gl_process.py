@@ -69,72 +69,77 @@ def run_process(idx: int, logger, detector: dict, api_key: str, endpoint: str,
     logger.error(f"Starting detector {detector['id']}...")
 
     while(True):
-        if not notify_queue.full() and not photo_queue.full():
-            notify_queue.put_nowait("fetch")
         try:
-            frame = photo_queue.get(timeout=30)
-        except:
-            print("No frame received from queue.")
+            if not notify_queue.full() and not photo_queue.full():
+                notify_queue.put_nowait("fetch")
+            try:
+                frame = photo_queue.get(timeout=30)
+            except:
+                print("No frame received from queue.")
+                continue
+            uuid = uuid4().hex
+
+            # send to groundlight
+            query = gl.submit_image_query(det, frame, 0) # default wait is 30s
+
+            has_cancelled = False
+
+            # send to local review
+            if not websocket_metadata_queue.full():
+                websocket_metadata_queue.put_nowait({
+                    "uuid": uuid,
+                    "det_id": detector["id"],
+                    "det_name": detector["name"],
+                    "det_query": detector["query"],
+                    "query_id": query.id,
+                    "det_idx": idx,
+                    "imgsrc_idx": detector["config"]["imgsrc_idx"],
+                    "image": frame_to_base64(frame),
+                })
+            
+            # poll for result until timeout
+            while should_continue():
+                query = gl.get_image_query(query.id)
+                if not has_cancelled and (
+                    (query.result.confidence is not None and query.result.confidence > conf)
+                    or (query.result.confidence is None and query.result.label is not None and query.result.label != "QUERY_FAIL" )):
+                    if not websocket_cancel_queue.full():
+                        websocket_cancel_queue.put_nowait({
+                            "cancel": True,
+                            "confidence": query.result.confidence,
+                            "uuid": uuid,
+                            "det_id": detector["id"],
+                            "det_name": detector["name"],
+                            "det_query": detector["query"],
+                            "det_idx": idx,
+                            "imgsrc_idx": detector["config"]["imgsrc_idx"],
+                            "label": query.result.label,
+                        })
+                    has_cancelled = True
+                    if "notifications" in detector["config"]:
+                        try:
+                            logger.error(f"Sending notifications for detector {detector['id']}...")
+                            # logger.error(detector["config"]["notifications"])
+                            send_notifications(detector["name"], detector["query"], query.result.label, detector["config"]["notifications"], frame, logger)
+                        except Exception as e:
+                            print(f"Error sending notifications: {e}")
+                delay()
+            
+            retry_time = time.time() + cycle_time
+            
+            if not has_cancelled and not websocket_cancel_queue.full():
+                # Cancel previous query if it hasn't been cancelled yet
+                websocket_cancel_queue.put_nowait({
+                    "cancel": True,
+                    "confidence": query.result.confidence,
+                    "uuid": uuid,
+                    "det_id": detector["id"],
+                    "det_name": detector["name"],
+                    "det_query": detector["query"],
+                    "det_idx": idx,
+                    "imgsrc_idx": detector["config"]["imgsrc_idx"],
+                })
+        except Exception as e:
+            print(f"Error: {e}")
+            logger.error(f"Error: {e}")
             continue
-        uuid = uuid4().hex
-
-        # send to groundlight
-        query = gl.submit_image_query(det, frame, 0) # default wait is 30s
-
-        has_cancelled = False
-
-        # send to local review
-        if not websocket_metadata_queue.full():
-            websocket_metadata_queue.put_nowait({
-                "uuid": uuid,
-                "det_id": detector["id"],
-                "det_name": detector["name"],
-                "det_query": detector["query"],
-                "query_id": query.id,
-                "det_idx": idx,
-                "imgsrc_idx": detector["config"]["imgsrc_idx"],
-                "image": frame_to_base64(frame),
-            })
-        
-        # poll for result until timeout
-        while should_continue():
-            query = gl.get_image_query(query.id)
-            if not has_cancelled and (
-                (query.result.confidence is not None and query.result.confidence > conf)
-                or (query.result.confidence is None and query.result.label is not None and query.result.label != "QUERY_FAIL" )):
-                if not websocket_cancel_queue.full():
-                    websocket_cancel_queue.put_nowait({
-                        "cancel": True,
-                        "confidence": query.result.confidence,
-                        "uuid": uuid,
-                        "det_id": detector["id"],
-                        "det_name": detector["name"],
-                        "det_query": detector["query"],
-                        "det_idx": idx,
-                        "imgsrc_idx": detector["config"]["imgsrc_idx"],
-                        "label": query.result.label,
-                    })
-                has_cancelled = True
-                if "notifications" in detector["config"]:
-                    try:
-                        logger.error(f"Sending notifications for detector {detector['id']}...")
-                        # logger.error(detector["config"]["notifications"])
-                        send_notifications(detector["name"], detector["query"], query.result.label, detector["config"]["notifications"], frame, logger)
-                    except Exception as e:
-                        print(f"Error sending notifications: {e}")
-            delay()
-        
-        retry_time = time.time() + cycle_time
-        
-        if not has_cancelled and not websocket_cancel_queue.full():
-            # Cancel previous query if it hasn't been cancelled yet
-            websocket_cancel_queue.put_nowait({
-                "cancel": True,
-                "confidence": query.result.confidence,
-                "uuid": uuid,
-                "det_id": detector["id"],
-                "det_name": detector["name"],
-                "det_query": detector["query"],
-                "det_idx": idx,
-                "imgsrc_idx": detector["config"]["imgsrc_idx"],
-            })
