@@ -21,69 +21,35 @@ The Monitoring Notification Server has a simple web interface (depected below) t
 
 ![Detector Dashboard](./images/Groundlight-Detector-Dashboard.png)
 
-## Running with Docker
+## Running the server
 
-1. Create the file `docker-compose.yml` with the following contents:
+There are several ways to deploy the code:
 
-```yaml
-services:
-  frontend:
-    image: docker.io/groundlight/monitoring-notification-server-frontend:latest
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-  backend:
-    image: docker.io/groundlight/monitoring-notification-server-backend:latest
-    ports:
-      - "8000:8000"
-    devices:
-      - /dev/video0:/dev/video0
-      - /dev/video1:/dev/video1
-      - /dev/video2:/dev/video2
-      - /dev/video3:/dev/video3
-    privileged: true
-    volumes:
-      - /dev/bus/usb:/dev/bus/usb
-```
+- Using Docker Compose
+- Using kubernetes
+- Using AWS Greengrass
+
+### Running with Docker Compose
+
+1. Use the file [`docker-compose.yml`](./deploy/docker-compose.yml) file. 
 
 2. Run `docker-compose up` in the same directory as the `docker-compose.yml` file.
 
-## Running from Docker on 32-bit ARM (armv7)
+### Running from Docker Compose on 32-bit ARM (armv7)
 
-1. Create the file `docker-compose.yml` with the following contents:
+32-bit arm requires different binary images.
 
-```yaml
-services:
-  frontend:
-    image: docker.io/groundlight/monitoring-notification-server-frontend:armv7-latest
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-  backend:
-    image: docker.io/groundlight/monitoring-notification-server-backend:armv7-latest
-    ports:
-      - "8000:8000"
-    devices:
-      - /dev/video0:/dev/video0
-      - /dev/video1:/dev/video1
-      - /dev/video2:/dev/video2
-      - /dev/video3:/dev/video3
-    privileged: true
-    volumes:
-      - /dev/bus/usb:/dev/bus/usb
-```
+1. Use the slightly different `docker-compose-armv7.yml`.
 
-2. Run `docker-compose up` in the same directory as the `docker-compose.yml` file.
+2. Run `docker-compose -f docker-compose-armv7.yml up`.
 
-## Running with AWS Greengrass
+### Running with AWS Greengrass
 
 Before creating the component, you must run `sudo usermod -aG docker ggc_user` on your Greengrass device to allow the Greengrass service to access the host's Docker daemon.
 
 1. Create a new Greengrass Component
 2. Select "Enter recipe as YAML"
-3. Paste the YAML from [greengrass-recipe.yaml](./greengrass-recipe.yaml) into the text box
+3. Paste the YAML from [greengrass-recipe.yaml](./deploy/greengrass-recipe.yaml) into the text box
 4. Click "Create component"
 5. Click "Deploy" to deploy the component to your Greengrass group
 
@@ -92,8 +58,8 @@ Before creating the component, you must run `sudo usermod -aG docker ggc_user` o
 1. Install [Node.js](https://nodejs.org/en/download/) and [Python 3.8+](https://www.python.org/downloads/).
 
 ```bash
-git clone https://github.com/groundlight/docker-edgelight-server.git
-cd docker-edgelight-server
+git clone https://github.com/groundlight/monitoring-notification-server
+cd monitoring-notification-server
 npm install
 npm run dev
 ```
@@ -102,3 +68,12 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 The FastApi server will be running on [http://0.0.0.0:8000](http://0.0.0.0:8000) – feel free to change the port in `package.json` (you'll also need to update it in `next.config.js`).
 
+## Contributing
+
+We welcome pull requests!
+
+### Organization of source code
+
+- `app` is the frontend typescript / react application
+- `api` is the backend python / fastapi application
+- `deploy` has code for deploying the system
