@@ -26,8 +26,8 @@ The Monitoring Notification Server has a simple web interface (depected below) t
 There are several ways to deploy the code:
 
 - Using Docker Compose
-- Using kubernetes
 - Using AWS Greengrass
+- Using Kubernetes
 
 ### Running with Docker Compose
 
@@ -53,6 +53,12 @@ Before creating the component, you must run `sudo usermod -aG docker ggc_user` o
 4. Click "Create component"
 5. Click "Deploy" to deploy the component to your Greengrass group
 
+### Running with Kubernetes
+
+_coming soon_
+
+We recommend a minimal Kubernetes install like [k3s](https://k3s.io/).
+
 ## Building from Source
 
 1. Install [Node.js](https://nodejs.org/en/download/) and [Python 3.8+](https://www.python.org/downloads/).
@@ -74,6 +80,6 @@ We welcome pull requests!
 
 ### Organization of source code
 
-- `app` is the frontend typescript / react application
-- `api` is the backend python / fastapi application
+- `app` is the frontend TypeScript / React application
+- `api` is the backend Python / FastApi application
 - `deploy` has code for deploying the system
