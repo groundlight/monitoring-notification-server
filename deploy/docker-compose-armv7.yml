@@ -1,0 +1,19 @@
+services:
+  frontend:
+    image: docker.io/groundlight/monitoring-notification-server-frontend:armv7-latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+  backend:
+    image: docker.io/groundlight/monitoring-notification-server-backend:armv7-latest
+    ports:
+      - "8000:8000"
+    devices:
+      - /dev/video0:/dev/video0
+      - /dev/video1:/dev/video1
+      - /dev/video2:/dev/video2
+      - /dev/video3:/dev/video3
+    privileged: true
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
