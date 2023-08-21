@@ -14,9 +14,12 @@ Manifests:
     os: "linux"
     architecture: "/amd64|aarch64/"
   Lifecycle:
+    install: "docker container stop monitoring-notification-server-frontend;\
+      \ docker container stop monitoring-notification-server-backend;\
+      \ docker container rm monitoring-notification-server-frontend;\
+      \ docker container rm monitoring-notification-server-backend; echo "Installed!"
     run: "docker container stop monitoring-notification-server-frontend; docker container\
-      \ stop monitoring-notification-server-backend; docker container rm monitoring-notification-server-frontend;\
-      \ docker container rm monitoring-notification-server-backend; docker run -d\
+      \ stop monitoring-notification-server-backend; docker run -d\
       \ --name monitoring-notification-server-frontend -p 3000:3000 docker.io/groundlight/monitoring-notification-server-frontend:latest;\
       \ docker run -d --name monitoring-notification-server-backend -p 8000:8000 --device\
       \ /dev/video0:/dev/video0 --device /dev/video1:/dev/video1 --device /dev/video2:/dev/video2\
@@ -28,9 +31,12 @@ Manifests:
     os: "linux"
     architecture: "armv7"
   Lifecycle:
+    install: "docker container stop monitoring-notification-server-frontend;\
+      \ docker container stop monitoring-notification-server-backend;\
+      \ docker container rm monitoring-notification-server-frontend;\
+      \ docker container rm monitoring-notification-server-backend; echo "Installed!"
     run: "docker container stop monitoring-notification-server-frontend; docker container\
-      \ stop monitoring-notification-server-backend; docker container rm monitoring-notification-server-frontend;\
-      \ docker container rm monitoring-notification-server-backend; docker run -d\
+      \ stop monitoring-notification-server-backend; docker run -d\
       \ --name monitoring-notification-server-frontend -p 3000:3000 docker.io/groundlight/monitoring-notification-server-frontend:latest-armv7;\
       \ docker run -d --name monitoring-notification-server-backend -p 8000:8000 --device\
       \ /dev/video0:/dev/video0 --device /dev/video1:/dev/video1 --device /dev/video2:/dev/video2\
