@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitoring-notification-deployment
+  labels:
+    app: monitoring-notification-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monitoring-notification-deployment
+  template:
+    metadata:
+      labels:
+        app: monitoring-notification-deployment
+    spec:
+      containers:
+        - name: monitoring-notification-server-backend
+          image: docker.io/groundlight/monitoring-notification-server-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+      containers:
+        - name: monitoring-notification-server-frontend
+          image: docker.io/groundlight/monitoring-notification-server-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
