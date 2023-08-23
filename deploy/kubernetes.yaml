@@ -34,8 +34,6 @@ spec:
   selector:
     app: monitoring-notification-deployment
   ports:
-    # port - port exposed internally in the cluster (service <--> ingress)
-    # targetPort - the container port to send requests to (service <--> pod)
   - port: 80
     targetPort: 3000
     protocol: TCP
