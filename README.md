@@ -55,9 +55,12 @@ Before creating the component, you must run `sudo usermod -aG docker ggc_user` o
 
 ### Running with Kubernetes
 
-_coming soon_
-
 We recommend a minimal Kubernetes install like [k3s](https://k3s.io/).
+
+> Use the file [`kubernetes.yaml`](./deploy/kubernetes.yaml) file.
+
+1. Create a Kubernetes cluster and install `kubectl` on your machine.
+2. Run `kubectl apply -f kubernetes.yaml` in the same directory as the `kubernetes.yaml` file.
 
 ## Building from Source
 
