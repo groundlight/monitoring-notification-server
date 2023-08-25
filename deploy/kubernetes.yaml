@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitoring-notification-service
+spec:
+  selector:
+    app: monitoring-notification-deployment
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -37,18 +49,6 @@ spec:
       - name: usb
         hostPath:
           path: /dev/bus/usb
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: monitoring-notification-service
-spec:
-  selector:
-    app: monitoring-notification-deployment
-  ports:
-  - port: 80
-    targetPort: 3000
-    protocol: TCP
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
