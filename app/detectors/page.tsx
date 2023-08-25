@@ -23,8 +23,6 @@ export default function Home() {
 	const [editNotificationsOverlayIndex, setEditNotificationsOverlayIndex] = useState<number>(0);
 	const [editNotificationsOverlayGroupIndex, setEditNotificationsOverlayGroupIndex] = useState<number>(0);
 
-	console.log(detectors);
-
 	const fetchConfig = async () => {
 		return await fetch(BASE_SERVER_URL + "/api/config").then((res) => res.json()).then((data) => {
 			setDetectors(data.detectors as DetType[] ? data.detectors as DetType[] : []);

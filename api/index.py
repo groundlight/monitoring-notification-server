@@ -180,10 +180,10 @@ def startup():
                         d["config"]["image"] = img
             except Exception as e:
                 logger.logger.error("Failed to load image, error: " + str(e))
-    except:
-        logger.logger.warn("No detectors")
 
-    store_config(config)
+        store_config(config)
+    except:
+        pass
 
 startup()
 
