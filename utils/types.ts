@@ -11,6 +11,7 @@ type NotificationOptionsType = {
 		from_email: string;
 		to_email: string;
 		email_password: string;
+		host: string;
 	};
 	twilio?: {
 		account_sid: string;

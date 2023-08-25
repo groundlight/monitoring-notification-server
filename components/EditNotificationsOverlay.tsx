@@ -25,6 +25,7 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
 		from_email: string;
 		to_email: string;
 		email_password: string;
+        host: string;
 	} | undefined>(detector.config.notifications?.email);
     const [stacklightNotification, setStacklightNotification] = useState<{
 		ip?: string;
@@ -36,7 +37,7 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
 
     const slackValid = !(slackNotification && (slackNotification.token === "" || slackNotification.channel_id === ""));
     const twilioValid = !(twilioNotification && (twilioNotification.account_sid === "" || twilioNotification.auth_token === "" || twilioNotification.from_number === "" || twilioNotification.to_number === ""));
-    const emailValid = !(emailNotification && (emailNotification.from_email === "" || emailNotification.to_email === "" || emailNotification.email_password === ""));
+    const emailValid = !(emailNotification && (emailNotification.from_email === "" || emailNotification.to_email === "" || emailNotification.email_password === "" || emailNotification.host === ""));
     const stacklightValid = !(stacklightNotification && stacklightNotification.ip === "");
     const isDetectorValid = slackValid && twilioValid && emailValid && stacklightValid;
 
@@ -154,6 +155,7 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                                     from_email: "",
                                     to_email: "",
                                     email_password: "",
+                                    host: "",
                                 });
                             } else {
                                 setEmailNotification(undefined);
@@ -183,6 +185,13 @@ export const EditNotificationsOverlay = ({ detector, index, onSave, onBack }:
                                 <input className={`border-2 ${emailValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Email Token" value={emailNotification.email_password} onChange={(e) => setEmailNotification({
                                     ...emailNotification,
                                     email_password: e.target.value,
+                                })} />
+                            </div>
+                            <div className="flex gap-2">
+                                <div className="font-bold  place-self-center">Email Host:</div>
+                                <input className={`border-2 ${emailValid ? "border-gray-300" : "border-red-500"} rounded-md p-2 w-full`} type="text" placeholder="Email Host" value={emailNotification.host} onChange={(e) => setEmailNotification({
+                                    ...emailNotification,
+                                    host: e.target.value,
                                 })} />
                             </div>
                         </>
