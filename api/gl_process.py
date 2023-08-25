@@ -37,6 +37,10 @@ def run_process(idx: int, logger: logging.Logger, detector: dict, api_key: str, 
                 websocket_cancel_queue: multiprocessing.Queue,
                 websocket_response_queue: multiprocessing.Queue):
 
+    if detector["config"]["imgsrc_idx"] == -1:
+        logger.error(f"Detector {detector['id']} has no image source.")
+        return
+
     trigger_type = detector["config"]["trigger_type"]
 
     poll_delay = 0.5
@@ -78,6 +82,10 @@ def run_process(idx: int, logger: logging.Logger, detector: dict, api_key: str, 
                 logger.warn("No frame received from queue.")
                 continue
             uuid = uuid4().hex
+
+            if frame is None:
+                logger.warn("Frame recieved as None.")
+                continue
 
             # send to groundlight
             query = gl.submit_image_query(det, frame, 0) # default wait is 30s

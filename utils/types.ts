@@ -34,7 +34,7 @@ type NotificationOptionsType = {
 type DetConfType = {
 	enabled: boolean;
 	imgsrc_idx: number;
-	vid_config: CameraConfigType;
+	vid_config?: CameraConfigType;
 	image: string;
 	trigger_type: string;
 	cycle_time?: number;
