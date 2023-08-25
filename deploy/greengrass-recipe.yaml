@@ -14,16 +14,12 @@ Manifests:
     os: "linux"
     architecture: "/amd64|aarch64/"
   Lifecycle:
-    install: "docker container stop monitoring-notification-server-frontend;\
-      \ docker container stop monitoring-notification-server-backend;\
-      \ docker container rm monitoring-notification-server-frontend;\
-      \ docker container rm monitoring-notification-server-backend; echo "Installed!"
-    run: "docker container stop monitoring-notification-server-frontend; docker container\
-      \ stop monitoring-notification-server-backend; docker run -d\
-      \ --name monitoring-notification-server-frontend -p 3000:3000 docker.io/groundlight/monitoring-notification-server-frontend:latest;\
-      \ docker run -d --name monitoring-notification-server-backend -p 8000:8000 --device\
-      \ /dev/video0:/dev/video0 --device /dev/video1:/dev/video1 --device /dev/video2:/dev/video2\
-      \ --device /dev/video3:/dev/video3 --privileged docker.io/groundlight/monitoring-notification-server-backend:latest"
+    run: "docker start monitoring-notification-server-frontend || docker run -d --name\
+      \ monitoring-notification-server-frontend -p 3000:3000 docker.io/groundlight/monitoring-notification-server-frontend:latest;\
+      \ docker start monitoring-notification-server-backend || docker run -d --name\
+      \ monitoring-notification-server-backend -p 8000:8000 --device /dev/video0:/dev/video0\
+      \ --device /dev/video1:/dev/video1 --device /dev/video2:/dev/video2 --device\
+      \ /dev/video3:/dev/video3 --privileged docker.io/groundlight/monitoring-notification-server-backend:latest"
   Artifacts:
   - Uri: "docker:groundlight/monitoring-notification-server-backend:latest"
   - Uri: "docker:groundlight/monitoring-notification-server-frontend:latest"
@@ -31,17 +27,13 @@ Manifests:
     os: "linux"
     architecture: "armv7"
   Lifecycle:
-    install: "docker container stop monitoring-notification-server-frontend;\
-      \ docker container stop monitoring-notification-server-backend;\
-      \ docker container rm monitoring-notification-server-frontend;\
-      \ docker container rm monitoring-notification-server-backend; echo "Installed!"
-    run: "docker container stop monitoring-notification-server-frontend; docker container\
-      \ stop monitoring-notification-server-backend; docker run -d\
-      \ --name monitoring-notification-server-frontend -p 3000:3000 docker.io/groundlight/monitoring-notification-server-frontend:latest-armv7;\
-      \ docker run -d --name monitoring-notification-server-backend -p 8000:8000 --device\
-      \ /dev/video0:/dev/video0 --device /dev/video1:/dev/video1 --device /dev/video2:/dev/video2\
-      \ --device /dev/video3:/dev/video3 --privileged docker.io/groundlight/monitoring-notification-server-backend:latest-armv7"
+    run: "docker start monitoring-notification-server-frontend || docker run -d --name\
+      \ monitoring-notification-server-frontend -p 3000:3000 docker.io/groundlight/monitoring-notification-server-frontend:armv7-latest;\
+      \ docker start monitoring-notification-server-backend || docker run -d --name\
+      \ monitoring-notification-server-backend -p 8000:8000 --device /dev/video0:/dev/video0\
+      \ --device /dev/video1:/dev/video1 --device /dev/video2:/dev/video2 --device\
+      \ /dev/video3:/dev/video3 --privileged docker.io/groundlight/monitoring-notification-server-backend:armv7-latest"
   Artifacts:
-  - Uri: "docker:groundlight/monitoring-notification-server-backend:latest-armv7"
-  - Uri: "docker:groundlight/monitoring-notification-server-frontend:latest-armv7"
+  - Uri: "docker:groundlight/monitoring-notification-server-backend:armv7-latest"
+  - Uri: "docker:groundlight/monitoring-notification-server-frontend:armv7-latest"
 Lifecycle: {}

@@ -4,7 +4,7 @@ import { Dropdown } from "@/components/Dropdown";
 import { EditDetectorOverlay } from "@/components/EditDetectorOverlay";
 import { EditNotificationsOverlay } from "@/components/EditNotificationsOverlay";
 import { BASE_SERVER_URL } from "@/utils/config";
-import { ArrowPathIcon, Cog6ToothIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, ArrowTrendingUpIcon, ArrowUpLeftIcon, ArrowUpRightIcon, Cog6ToothIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import ReactSwitch from "react-switch";
 
@@ -237,8 +237,15 @@ export default function Home() {
 						<div className="p-1"></div>
 						{/* <div className="grid grid-cols-2 gap-4 w-full px-4 py-1 border-y-[1px] border-black"> */}
 						<div className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),56px] gap-4 w-full px-4 py-1 border-y-[1px] border-black">
-							<h2 className="text-lg">{group[0].name}</h2>
-							<h2 className="text-lg">{group[0].query}</h2>
+							<a
+								href={"https://app.groundlight.ai/reef/detectors/" + group[0].id}
+								target="_blank"
+								className="text-lg hover:bg-gray-200 hover:text-gray-700 rounded-md px-4 py-1 mr-auto"
+							>
+								{group[0].name}
+								<ArrowUpRightIcon className="ml-2 w-5 h-5 inline-block" />
+							</a>
+							<h2 className="text-lg py-1">{group[0].query}</h2>
 							<button className="hover:bg-gray-200 hover:text-gray-700 rounded-md px-2 py-1 font-bold" onClick={() => {
 								setShowEditNotificationsOverlay(true);
 								setEditNotificationsOverlayIndex(0);
