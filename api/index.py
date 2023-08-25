@@ -171,14 +171,17 @@ def startup():
 
     app.ALL_GRABBERS: List[FrameGrabber] = make_grabbers()
 
-    for d in detectors:
-        try:
-            if "imgsrc_idx" in d["config"] and "image" not in d["config"] and d["config"]["imgsrc_idx"] != "-1":
-                img = get_base64_img(app.ALL_GRABBERS[d["config"]["imgsrc_idx"]])
-                if img:
-                    d["config"]["image"] = img
-        except Exception as e:
-            logger.logger.error("Failed to load image, error: " + str(e))
+    try:
+        for d in detectors:
+            try:
+                if "imgsrc_idx" in d["config"] and "image" not in d["config"] and d["config"]["imgsrc_idx"] != "-1":
+                    img = get_base64_img(app.ALL_GRABBERS[d["config"]["imgsrc_idx"]])
+                    if img:
+                        d["config"]["image"] = img
+            except Exception as e:
+                logger.logger.error("Failed to load image, error: " + str(e))
+    except:
+        logger.logger.warn("No detectors")
 
     store_config(config)
 
