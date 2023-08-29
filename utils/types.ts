@@ -11,6 +11,7 @@ type NotificationOptionsType = {
 		from_email: string;
 		to_email: string;
 		email_password: string;
+		host: string;
 	};
 	twilio?: {
 		account_sid: string;
@@ -33,7 +34,7 @@ type NotificationOptionsType = {
 type DetConfType = {
 	enabled: boolean;
 	imgsrc_idx: number;
-	vid_config: CameraConfigType;
+	vid_config?: CameraConfigType;
 	image: string;
 	trigger_type: string;
 	cycle_time?: number;

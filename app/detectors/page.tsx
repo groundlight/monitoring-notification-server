@@ -4,7 +4,7 @@ import { Dropdown } from "@/components/Dropdown";
 import { EditDetectorOverlay } from "@/components/EditDetectorOverlay";
 import { EditNotificationsOverlay } from "@/components/EditNotificationsOverlay";
 import { BASE_SERVER_URL } from "@/utils/config";
-import { ArrowPathIcon, Cog6ToothIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, ArrowTrendingUpIcon, ArrowUpLeftIcon, ArrowUpRightIcon, Cog6ToothIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import ReactSwitch from "react-switch";
 
@@ -16,6 +16,7 @@ export default function Home() {
 	const [showEditOverlay, setShowEditOverlay] = useState<boolean>(false);
 	const [editOverlayIndex, setEditOverlayIndex] = useState<number>(0);
 	const [lastButtonWasAdd, setLastButtonWasAdd] = useState<boolean>(false);
+	const [lastAddButtonWasNew, setLastAddButtonWasNew] = useState<boolean>(false);
 	const [imageSources, setImageSources] = useState<CameraType[]>([]);
 	const [camerasWaiting, setCamerasWaiting] = useState<boolean[]>([]); // images that are waiting for a response
 	const [showEditNotificationsOverlay, setShowEditNotificationsOverlay] = useState<boolean>(false);
@@ -118,7 +119,6 @@ export default function Home() {
 		let detectors_copy = [...detectors];
 		detectors_copy[det_idx].config.imgsrc_idx = imgsrc_idx;
 		detectors_copy[det_idx].config.image = imageSources[imgsrc_idx].image;
-		detectors_copy[det_idx].config.vid_config = imageSources[imgsrc_idx].config;
 		setDetectors(detectors_copy);
 		saveDetectors(detectors_copy);
 	}
@@ -184,6 +184,7 @@ export default function Home() {
 					<button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded-lg flex items-center text-sm" onClick={() => {
 						setShowEditOverlay(true);
 						setLastButtonWasAdd(true);
+						setLastAddButtonWasNew(true);
 						setEditOverlayIndex(detectors.length);
 						setDetectors((detectors) => detectors.concat({
 							name: "New Detector",
@@ -191,11 +192,8 @@ export default function Home() {
 							id: "",
 							config: {
 								enabled: false,
-								imgsrc_idx: 0,
-								vid_config: detectors[0]?.config?.vid_config ? detectors[0].config.vid_config : {
-									name: "",
-								},
-								image: detectors[0]?.config?.image ? detectors[0].config.image : "",
+								imgsrc_idx: -1,
+								image: "",
 								trigger_type: "time",
 								cycle_time: 30,
 							}
@@ -208,6 +206,7 @@ export default function Home() {
 					<div className="w-52">
 						<Dropdown options={availableDetectors.map(d => d.name)} selected="Add Existing Detector" setSelected={(e, idx) => {
 							setLastButtonWasAdd(true);
+							setLastAddButtonWasNew(false);
 							setEditOverlayIndex(detectors.length);
 							let detectors_copy = detectors.concat({
 								name: availableDetectors[idx].name,
@@ -215,11 +214,8 @@ export default function Home() {
 								id: availableDetectors[idx].id,
 								config: {
 									enabled: false,
-									imgsrc_idx: 0,
-									vid_config: detectors[0]?.config?.vid_config ? detectors[0].config.vid_config : {
-										name: "webcam",
-									},
-									image: detectors[0]?.config?.image ? detectors[0].config.image : "",
+									imgsrc_idx: -1,
+									image: "",
 									trigger_type: "time",
 									cycle_time: 30,
 								}
@@ -235,20 +231,22 @@ export default function Home() {
 				{detectorsByGroup && detectorsByGroup.map((group, indexA) => (
 					<div className="flex flex-col items-start" key={indexA}>
 						<div className="p-1"></div>
-						{/* <div className="grid grid-cols-2 gap-4 w-full px-4 py-1 border-y-[1px] border-black"> */}
 						<div className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),56px] gap-4 w-full px-4 py-1 border-y-[1px] border-black">
-							<h2 className="text-lg">{group[0].name}</h2>
-							<h2 className="text-lg">{group[0].query}</h2>
+							<a
+								href={"https://app.groundlight.ai/reef/detectors/" + group[0].id}
+								target="_blank"
+								className="text-lg hover:bg-gray-200 hover:text-gray-700 rounded-md px-4 py-1 mr-auto"
+							>
+								{group[0].name}
+								<ArrowUpRightIcon className="ml-2 w-5 h-5 inline-block" />
+							</a>
+							<h2 className="text-lg py-1">{group[0].query}</h2>
 							<button className="hover:bg-gray-200 hover:text-gray-700 rounded-md px-2 py-1 font-bold" onClick={() => {
 								setShowEditNotificationsOverlay(true);
 								setEditNotificationsOverlayIndex(0);
 								setEditNotificationsOverlayGroupIndex(indexA);
 							}}>
-								<Cog6ToothIcon className="w-6 h-6 m-auto" onClick={() => {
-									// setShowEditNotificationsOverlay(true);
-									// setEditNotificationsOverlayIndex(0);
-									// setEditNotificationsOverlayGroupIndex(indexA);
-								}} />
+								<Cog6ToothIcon className="w-6 h-6 m-auto"/>
 							</button>
 						</div>
 						{group.map((detector, indexB) => (
@@ -272,7 +270,8 @@ export default function Home() {
 												{ source.config.name }
 											</div>
 										)
-									} selected={detector.config.vid_config.name != "" ? detector.config.vid_config.name : "Choose Img Src"} setSelected={(e, idx) => {
+									// } selected={detector.config.vid_config.name != "" ? detector.config.vid_config.name : "Choose Img Src"} setSelected={(e, idx) => {
+									} selected={detector.config.imgsrc_idx >= 0 && imageSources.length > 0 ? imageSources[detector.config.imgsrc_idx].config.name : "Choose Img Src"} setSelected={(e, idx) => {
 										changeDetectorImgSrc(detector, idx);
 									}} />
 								</div>
@@ -301,6 +300,7 @@ export default function Home() {
 										setEditOverlayIndex(index);
 										setShowEditOverlay(true);
 										setLastButtonWasAdd(false);
+										setLastAddButtonWasNew(false);
 									}}>
 										<Cog6ToothIcon className="w-6 h-6" />
 									</button>
@@ -318,18 +318,16 @@ export default function Home() {
 								<button className="w-full rounded-lg border-2 bg-gray-200 border-gray-300 text-gray-400 hover:bg-gray-300 h-full flex items-center justify-center" onClick={() => {
 									setShowEditOverlay(true);
 									setLastButtonWasAdd(true);
+									setLastAddButtonWasNew(false);
 									setEditOverlayIndex(detectors.length);
 									setDetectors((detectors) => detectors.concat({
-										name: group[0]?.name ? group[0].name : "New Detector",
-										query: group[0]?.query ? group[0].query : "New Query?",
-										id: group[0]?.id ? group[0].id : "",
+										name: group[0].name,
+										query: group[0].query,
+										id: group[0].id,
 										config: {
 											enabled: false,
-											imgsrc_idx: 0,
-											vid_config: detectors[0]?.config?.vid_config ? detectors[0].config.vid_config : {
-												name: "webcam",
-											},
-											image: detectors[0]?.config?.image ? detectors[0].config.image : "",
+											imgsrc_idx: -1,
+											image: "",
 											trigger_type: "time",
 											cycle_time: 30,
 										}
@@ -343,7 +341,7 @@ export default function Home() {
 				))}
 			</div>
 			{detectors.length > 0 && showEditOverlay &&
-				<EditDetectorOverlay detector={detectors[editOverlayIndex]} detectors={availableDetectors} index={0} onSave={async (e) => {
+				<EditDetectorOverlay detector={detectors[editOverlayIndex]} detectors={availableDetectors} index={0} startWithNew={lastAddButtonWasNew} onSave={async (e) => {
 					if (e.isNewDetector) {
 						const id = await makeNewDetector(e.detector);
 						if (id === "Failed") {
