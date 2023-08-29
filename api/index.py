@@ -334,6 +334,22 @@ def intro_finished():
 def set_config_post_method(config_str: dict):
     if "config" not in config_str:
         return "Failed"
+    
+    # kill all processes
+    for p in app.DETECTOR_PROCESSES:
+        if p.is_alive():
+            p.kill()
+    
+    app.DETECTOR_PROCESSES = []
+    
+    # turn off all grabbers
+    for g in app.ALL_GRABBERS:
+        try:
+            g.release()
+        except:
+            pass
+
+    app.ALL_GRABBERS = []
 
     try:
         config = json.loads(config_str["config"])
