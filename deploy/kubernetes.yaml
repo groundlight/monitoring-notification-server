@@ -50,6 +50,8 @@ spec:
         hostPath:
           path: /dev/bus/usb
 ---
+# Ingress to make the service accessible from outside the cluster
+# This is necessary if you want to access the application's web interface
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
