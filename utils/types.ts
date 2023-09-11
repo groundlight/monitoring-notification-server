@@ -50,6 +50,12 @@ type DetType = {
 	config: DetConfType;
 };
 
+type DetExpType = DetType & {
+    // index: number;
+    delete: () => void;
+    edit: (det: DetType) => void;
+};
+
 type DetBaseType = {
 	name: string;
 	id: string;
