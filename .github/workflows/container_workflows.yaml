@@ -69,7 +69,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          tags: ${{ matrix.tag }}${{ steps.docker-tag-name.outputs.TAGNAME }
+          tags: ${{ matrix.tag }}${{ steps.docker-tag-name.outputs.TAGNAME }}
           platforms: ${{ matrix.platforms }}
           file: ${{ matrix.dockerfile }}
           # push if the target is main
