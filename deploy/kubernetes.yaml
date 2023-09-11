@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitoring-notification-service
+spec:
+  selector:
+    app: monitoring-notification-deployment
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitoring-notification-deployment
+  labels:
+    app: monitoring-notification-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monitoring-notification-deployment
+  template:
+    metadata:
+      labels:
+        app: monitoring-notification-deployment
+    spec:
+      containers:
+        - name: monitoring-notification-server-backend
+          image: docker.io/groundlight/monitoring-notification-server-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: usb
+              mountPath: /dev/bus/usb
+        - name: monitoring-notification-server-frontend
+          image: docker.io/groundlight/monitoring-notification-server-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: BACKEND_BASE_URL
+              value: "http://0.0.0.0:8000"
+      volumes:
+      - name: usb
+        hostPath:
+          path: /dev/bus/usb
+---
+# Ingress to make the service accessible from outside the cluster
+# This is necessary if you want to access the application's web interface
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: monitoring-notification-service
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: monitoring-notification-service
+            port:
+              number: 80
