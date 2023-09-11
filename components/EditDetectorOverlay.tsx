@@ -3,11 +3,11 @@ import { Dropdown } from "./Dropdown";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import useEscape from "@/hooks/useEscape";
 
-export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDelete, onBack }:
-    { detector: DetType, detectors: DetBaseType[], index: number, onSave: (e: { detector: DetType, isNewDetector: boolean, index: number }) => void, onDelete: (e: any) => void, onBack: () => void }
+export const EditDetectorOverlay = ({ detector, detectors, index, startWithNew, onSave, onDelete, onBack }:
+    { detector: DetType, detectors: DetBaseType[], index: number, startWithNew?: boolean, onSave: (e: { detector: DetType, isNewDetector: boolean, index: number }) => void, onDelete: (e: any) => void, onBack: () => void }
 ) => {
     useEscape(onBack);
-    const [newDetector, setNewDetector] = useState<boolean>(false);
+    const [newDetector, setNewDetector] = useState<boolean>(startWithNew || false);
     const [name, setName] = useState<string>(detector.name);
     const [query, setQuery] = useState<string>(detector.query);
     const [id, setId] = useState<string>(detector.id);
@@ -15,10 +15,6 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
     const [cycleTime, setCycleTime] = useState<number | undefined>(detector.config.cycle_time);
     const [pin, setPin] = useState<number | undefined>(detector.config.pin);
     const [pinActiveState, setPinActiveState] = useState<number | undefined>(detector.config.pin_active_state);
-    const [vidConfig, setVidConfig] = useState<CameraConfigType>(detector.config.vid_config);
-    const [imgSrcIdx, setImgSrcIdx] = useState<number>(0);
-    const [image, setImage] = useState<string>(detector.config.image);
-    const [detectorEnabled, setDetectorEnabled] = useState<boolean>(detector.config.enabled);
 
     const isDetectorValid = newDetector ?
         name !== "" && query !== "" && !detectors.map(d => d.name).includes(name) : id !== "" && detectors.map(d => d.name).includes(name);
@@ -94,10 +90,9 @@ export const EditDetectorOverlay = ({ detector, detectors, index, onSave, onDele
                             query,
                             id,
                             config: {
-                                enabled: detectorEnabled,
-                                imgsrc_idx: imgSrcIdx,
-                                vid_config: vidConfig,
-                                image: image,
+                                enabled: detector.config.enabled,
+                                imgsrc_idx: detector.config.imgsrc_idx,
+                                image: detector.config.image,
                                 trigger_type: triggerType,
                                 cycle_time: cycleTime,
                                 pin,

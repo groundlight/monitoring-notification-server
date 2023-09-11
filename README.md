@@ -45,7 +45,7 @@ There are several ways to deploy the code:
 
 ### Running with AWS Greengrass
 
-Before creating the component, you must run `sudo usermod -aG docker ggc_user` on your Greengrass device to allow the Greengrass service to access the host's Docker daemon.
+Before creating the component, run `sudo usermod -aG docker ggc_user` on your Greengrass device to allow the Greengrass service to access the host's Docker daemon.
 
 1. Create a new Greengrass Component
 2. Select "Enter recipe as YAML"

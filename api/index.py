@@ -20,7 +20,7 @@ from api.notifications import send_notifications
 class Config(pydantic.BaseModel):
     enabled: bool
     imgsrc_idx: int
-    vid_config: dict
+    # vid_config: dict
     image: Optional[str]
     trigger_type: str
     cycle_time: Union[int, None]
@@ -61,6 +61,14 @@ def get_base64_img(g: FrameGrabber) -> Union[str, None]:
 
 def fetch_config() -> dict:
     with open("./api/gl_config.json", "r") as f:
+        return json.load(f)
+    
+def fetch_external_config_yaml() -> dict:
+    with open("./api/external/config.yaml", "r") as f:
+        return yaml.safe_load(f)
+
+def fetch_external_config_json() -> dict:
+    with open("./api/external/config.json", "r") as f:
         return json.load(f)
 
 def store_config(config: dict):
@@ -120,10 +128,34 @@ def make_grabbers():
 
     return grabbers
 
+def make_images_for_detectors():
+    config = fetch_config()
+    if "detectors" not in config:
+        return
+    for d in config["detectors"]:
+        try:
+            if "imgsrc_idx" in d["config"] and "image" not in d["config"] and d["config"]["imgsrc_idx"] != "-1":
+                img = get_base64_img(app.ALL_GRABBERS[d["config"]["imgsrc_idx"]])
+                if img:
+                    d["config"]["image"] = img
+        except Exception as e:
+            logger.logger.error("Failed to load image, error: " + str(e))
+
+    store_config(config)
+
 def startup():
     logger.logger.info("Loading config...")
     try:
-        config = fetch_config()
+        try:
+            config = fetch_config()
+        except:
+            try:
+                config = fetch_external_config_yaml()
+                logger.logger.info("Loaded external yaml config")
+            except:
+                config = fetch_external_config_json()
+                logger.logger.info("Loaded external json config")
+            store_config(config)
         detectors = config["detectors"] if "detectors" in config else []
         api_key = config["api_key"] if "api_key" in config else None
         endpoint = config["endpoint"] if "endpoint" in config else None
@@ -141,12 +173,17 @@ def startup():
 
     try:
         for d in detectors:
-            if "imgsrc_idx" in d["config"] and "image" not in d["config"] and d["config"]["imgsrc_idx"] != "-1":
-                img = get_base64_img(app.ALL_GRABBERS[d["config"]["imgsrc_idx"]])
-                if img:
-                    d["config"]["image"] = img
-    except Exception as e:
-        logger.logger.error("Failed to load images, error: " + str(e))
+            try:
+                if "imgsrc_idx" in d["config"] and "image" not in d["config"] and d["config"]["imgsrc_idx"] != "-1":
+                    img = get_base64_img(app.ALL_GRABBERS[d["config"]["imgsrc_idx"]])
+                    if img:
+                        d["config"]["image"] = img
+            except Exception as e:
+                logger.logger.error("Failed to load image, error: " + str(e))
+
+        store_config(config)
+    except:
+        pass
 
 startup()
 
@@ -200,10 +237,12 @@ def make_new_detector(detector: Detector):
         return "Failed"
 
 @app.post("/api/config/detectors")
-def post_detectors(detectors: DetectorList):
+# def post_detectors(detectors: DetectorList):
+def post_detectors(detectors: dict):
     config = fetch_config()
     try:
-        config["detectors"] = json.loads(detectors.json())["detectors"]
+        # config["detectors"] = json.loads(detectors.json())["detectors"]
+        config["detectors"] = detectors["detectors"]
         endpoint = config["endpoint"] if "endpoint" in config else None
         api_key = config["api_key"] if "api_key" in config else None
     except Exception as e:
@@ -247,7 +286,21 @@ def get_cameras():
 
 @app.post("/api/cameras/autodetect")
 def autodetect_cameras():
-    new_grabbers: List[FrameGrabber] = framegrab.FrameGrabber.autodiscover().values()
+    new_grabbers: List[FrameGrabber] = list(framegrab.FrameGrabber.autodiscover().values())
+    time.sleep(0.2)
+    indicies_to_remove = []
+    for i in range(len(new_grabbers)):
+        try:
+            new_grabbers[i].grab()
+        except:
+            indicies_to_remove.append(i)
+    for i in indicies_to_remove[::-1]:
+        try:
+            new_grabbers[i].release()
+        except:
+            pass
+        new_grabbers.pop(i)
+    
     app.ALL_GRABBERS.extend(new_grabbers)
     set_in_config({"image_sources": list(map(lambda g: g.config, app.ALL_GRABBERS))})
 
@@ -281,6 +334,22 @@ def intro_finished():
 def set_config_post_method(config_str: dict):
     if "config" not in config_str:
         return "Failed"
+    
+    # kill all processes
+    for p in app.DETECTOR_PROCESSES:
+        if p.is_alive():
+            p.kill()
+    
+    app.DETECTOR_PROCESSES = []
+    
+    # turn off all grabbers
+    for g in app.ALL_GRABBERS:
+        try:
+            g.release()
+        except:
+            pass
+
+    app.ALL_GRABBERS = []
 
     try:
         config = json.loads(config_str["config"])
@@ -304,7 +373,10 @@ async def websocket_queue_runner(logger):
                     logger.info("Taking photo")
                     app.DETECTOR_GRAB_NOTIFY_QUEUES[i].get_nowait()
                     d = list(filter(lambda d: d["config"]["enabled"], app.DETECTOR_CONFIG["detectors"]))[i]
-                    img = app.ALL_GRABBERS[d["config"]["imgsrc_idx"]].grab()
+                    try:
+                        img = app.ALL_GRABBERS[d["config"]["imgsrc_idx"]].grab()
+                    except:
+                        img = None
                     app.DETECTOR_PHOTO_QUEUES[i].put_nowait(img)
             while not app.WEBSOCKET_RESPONSE_QUEUE.empty():
                 res = app.WEBSOCKET_RESPONSE_QUEUE.get()
@@ -330,6 +402,12 @@ async def app_startup():
 
 @app.on_event("shutdown")
 async def app_shutdown():
+    logger.logger.info("Shutting down grabbers and detectors...")
+    for g in app.ALL_GRABBERS:
+        try:
+            g.release()
+        except:
+            pass
     for p in app.DETECTOR_PROCESSES:
         if p.is_alive():
             p.kill()
