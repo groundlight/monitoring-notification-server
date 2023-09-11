@@ -3,28 +3,29 @@
 import { Dropdown } from "@/components/Dropdown";
 import { EditDetectorOverlay } from "@/components/EditDetectorOverlay";
 import { EditNotificationsOverlay } from "@/components/EditNotificationsOverlay";
-import { BASE_SERVER_URL } from "@/utils/config";
-import { ArrowPathIcon, ArrowTrendingUpIcon, ArrowUpLeftIcon, ArrowUpRightIcon, Cog6ToothIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useAvailableDetectors } from "@/utils/useAvailableDetectors";
+import { useImageSources } from "@/utils/useImageSources";
+import { ArrowPathIcon, ArrowUpRightIcon, Cog6ToothIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import ReactSwitch from "react-switch";
+
+type LastActionType = 'CreateNewDetector' | 'AddExistingDetector' | 'EditDetector' | 'EditNotifications' | 'AddImageSourceToDetector';
 
 export default function Home() {
 	const [detectors, setDetectors] = useState<DetType[]>([]);
 	const [detectorsByGroup, setDetectorsByGroup] = useState<DetType[][]>([]);
 	const [detectorIndiciesByGroup, setDetectorIndiciesByGroup] = useState<number[][]>([]); // [group index][detector index]
-	const [availableDetectors, setAvailableDetectors] = useState<DetBaseType[]>([]);
+	const { detectors: availableDetectors } = useAvailableDetectors();
 	const [showEditOverlay, setShowEditOverlay] = useState<boolean>(false);
 	const [editOverlayIndex, setEditOverlayIndex] = useState<number>(0);
-	const [lastButtonWasAdd, setLastButtonWasAdd] = useState<boolean>(false);
-	const [lastAddButtonWasNew, setLastAddButtonWasNew] = useState<boolean>(false);
-	const [imageSources, setImageSources] = useState<CameraType[]>([]);
-	const [camerasWaiting, setCamerasWaiting] = useState<boolean[]>([]); // images that are waiting for a response
+	const [lastAction, setLastAction] = useState<LastActionType>('CreateNewDetector');
+	const { imageSources, imageSourcesLoaded, refreshImageSource } = useImageSources();
+	const camerasWaiting = imageSourcesLoaded.map(val => !val);
 	const [showEditNotificationsOverlay, setShowEditNotificationsOverlay] = useState<boolean>(false);
-	const [editNotificationsOverlayIndex, setEditNotificationsOverlayIndex] = useState<number>(0);
 	const [editNotificationsOverlayGroupIndex, setEditNotificationsOverlayGroupIndex] = useState<number>(0);
 
 	const fetchConfig = async () => {
-		return await fetch(BASE_SERVER_URL + "/api/config").then((res) => res.json()).then((data) => {
+		return await fetch("/api/config").then((res) => res.json()).then((data) => {
 			setDetectors(data.detectors as DetType[] ? data.detectors as DetType[] : []);
 			if (data?.detectors) {
 				const detIdxByGroup: number[][] = [];
@@ -49,22 +50,12 @@ export default function Home() {
 	useEffect(() => {
 		// fetch detector configs
 		void fetchConfig();
-
-		// fetch available image sources
-		fetch(BASE_SERVER_URL + "/api/cameras").then((res) => res.json()).then((data) => {
-			setImageSources(data as CameraType[] ? data as CameraType[] : []);
-			setCamerasWaiting(new Array((data as CameraType[]).length).fill(false));
-		});
-
-		// fetch available detectors
-		fetch(BASE_SERVER_URL + "/api/detectors").then((res) => res.json()).then((data) => {
-			setAvailableDetectors(data as DetBaseType[] ? data as DetBaseType[] : []);
-		});
 	}, []);
 
 	const saveDetectors = (detectors_to_save: DetType[]) => {
+		setDetectors(detectors_to_save);
 		// save detector configs
-		fetch(BASE_SERVER_URL + "/api/config/detectors", {
+		fetch("/api/config/detectors", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -98,7 +89,7 @@ export default function Home() {
 
 	const makeNewDetector = async (detector: DetType) => {
 		// make new detector
-		const res = await fetch(BASE_SERVER_URL + "/api/new-detector", {
+		const res = await fetch("/api/new-detector", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -113,66 +104,34 @@ export default function Home() {
 	}
 
 	const changeDetectorImgSrc = (detector: DetType, imgsrc_idx: number) => {
-		// change detector image source
 		const det_idx = detectors.findIndex((det) => det == detector);
 		if (det_idx === -1) return;
 		let detectors_copy = [...detectors];
 		detectors_copy[det_idx].config.imgsrc_idx = imgsrc_idx;
 		detectors_copy[det_idx].config.image = imageSources[imgsrc_idx].image;
-		setDetectors(detectors_copy);
 		saveDetectors(detectors_copy);
 	}
 
 	const changeDetectorEnabled = (det_idx: number, enabled: boolean) => {
-		// change detector enabled
 		let detectors_copy = [...detectors];
 		detectors_copy[det_idx].config.enabled = enabled;
-		setDetectors(detectors_copy);
 		saveDetectors(detectors_copy);
 	}
 
-	const deleteDetector = (detector: DetType) => {
-		// delete detector
-		const det_idx = detectors.findIndex((det) => det == detector);
-		if (det_idx === -1) return;
+	const deleteDetector = (det_idx: number) => {
 		let detectors_copy = [...detectors];
 		detectors_copy.splice(det_idx, 1);
-		setDetectors(detectors_copy);
 		saveDetectors(detectors_copy);
 	}
 
 	const refreshDetectorImg = (idx: number, det: DetType) => {
-        // set camera waiting
-        const cameras_waiting_copy = camerasWaiting.slice();
-        cameras_waiting_copy[idx] = true;
-        setCamerasWaiting(cameras_waiting_copy);
-        
-        // fetch cameras
-        fetch(BASE_SERVER_URL + "/api/refresh-camera", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(imageSources[idx].config)
-        }).then((res) => res.json()).then((data) => {
-            if (!imageSources) return;
-            const cameras_copy = imageSources.slice();
-            cameras_copy[idx].image = data.image;
-            setImageSources(cameras_copy);
-
-			// set detector image
+		refreshImageSource(idx).then(() => {
 			const det_idx = detectors.findIndex((d) => d == det);
 			if (det_idx === -1) return;
 			let detectors_copy = detectors.slice();
-			detectors_copy[det_idx].config.image = data.image;
-			setDetectors(detectors_copy);
+			detectors_copy[det_idx].config.image = imageSources[idx].image;
 			saveDetectors(detectors_copy);
-            
-            // set camera waiting false
-            const cameras_waiting_copy = camerasWaiting.slice();
-            cameras_waiting_copy[idx] = false;
-            setCamerasWaiting(cameras_waiting_copy);
-        });
+		});
     }
 
 	return (
@@ -183,8 +142,7 @@ export default function Home() {
 				<div className="flex gap-4 ml-auto">
 					<button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded-lg flex items-center text-sm" onClick={() => {
 						setShowEditOverlay(true);
-						setLastButtonWasAdd(true);
-						setLastAddButtonWasNew(true);
+						setLastAction('CreateNewDetector');
 						setEditOverlayIndex(detectors.length);
 						setDetectors((detectors) => detectors.concat({
 							name: "New Detector",
@@ -205,8 +163,7 @@ export default function Home() {
 					</button>
 					<div className="w-52">
 						<Dropdown options={availableDetectors.map(d => d.name)} selected="Add Existing Detector" setSelected={(e, idx) => {
-							setLastButtonWasAdd(true);
-							setLastAddButtonWasNew(false);
+							setLastAction('AddExistingDetector');
 							setEditOverlayIndex(detectors.length);
 							let detectors_copy = detectors.concat({
 								name: availableDetectors[idx].name,
@@ -220,7 +177,6 @@ export default function Home() {
 									cycle_time: 30,
 								}
 							});
-							setDetectors(detectors_copy);
 							saveDetectors(detectors_copy);
 						}} className="!border-0 !bg-blue-500 hover:!bg-blue-700 !font-bold !text-white"/>
 					</div>
@@ -243,7 +199,6 @@ export default function Home() {
 							<h2 className="text-lg py-1">{group[0].query}</h2>
 							<button className="hover:bg-gray-200 hover:text-gray-700 rounded-md px-2 py-1 font-bold" onClick={() => {
 								setShowEditNotificationsOverlay(true);
-								setEditNotificationsOverlayIndex(0);
 								setEditNotificationsOverlayGroupIndex(indexA);
 							}}>
 								<Cog6ToothIcon className="w-6 h-6 m-auto"/>
@@ -299,13 +254,13 @@ export default function Home() {
 										const index = detectorIndiciesByGroup[indexA][indexB];
 										setEditOverlayIndex(index);
 										setShowEditOverlay(true);
-										setLastButtonWasAdd(false);
-										setLastAddButtonWasNew(false);
+										setLastAction('EditDetector');
 									}}>
 										<Cog6ToothIcon className="w-6 h-6" />
 									</button>
 									<button className="bg-red-500 hover:bg-red-700 px-4 py-2 rounded text-white font-bold" onClick={() => {
-										deleteDetector(detector);
+										const index = detectorIndiciesByGroup[indexA][indexB];
+										deleteDetector(index);
 									}}>
 										<TrashIcon className="w-6 h-6" />
 									</button>
@@ -317,8 +272,7 @@ export default function Home() {
 							<div className="relative inline-block">
 								<button className="w-full rounded-lg border-2 bg-gray-200 border-gray-300 text-gray-400 hover:bg-gray-300 h-full flex items-center justify-center" onClick={() => {
 									setShowEditOverlay(true);
-									setLastButtonWasAdd(true);
-									setLastAddButtonWasNew(false);
+									setLastAction('AddImageSourceToDetector');
 									setEditOverlayIndex(detectors.length);
 									setDetectors((detectors) => detectors.concat({
 										name: group[0].name,
@@ -341,15 +295,12 @@ export default function Home() {
 				))}
 			</div>
 			{detectors.length > 0 && showEditOverlay &&
-				<EditDetectorOverlay detector={detectors[editOverlayIndex]} detectors={availableDetectors} index={0} startWithNew={lastAddButtonWasNew} onSave={async (e) => {
+				<EditDetectorOverlay detector={detectors[editOverlayIndex]} detectors={availableDetectors} index={0} startWithNew={lastAction == 'CreateNewDetector'} onSave={async (e) => {
 					if (e.isNewDetector) {
 						const id = await makeNewDetector(e.detector);
 						if (id === "Failed") {
 							setShowEditOverlay(false);
-							let detectors_copy = [...detectors];
-							detectors_copy.splice(editOverlayIndex, 1);
-							setDetectors(detectors_copy);
-							saveDetectors(detectors_copy);
+							deleteDetector(editOverlayIndex);
 							return;
 						}
 						e.detector.id = id;
@@ -357,20 +308,14 @@ export default function Home() {
 					setShowEditOverlay(false);
 					let detectors_copy = [...detectors];
 					detectors_copy[editOverlayIndex] = e.detector;
-					setDetectors(detectors_copy);
 					saveDetectors(detectors_copy);
 				}} onDelete={() => {
 					setShowEditOverlay(false);
-					let detectors_copy = [...detectors];
-					detectors_copy.splice(editOverlayIndex, 1);
-					setDetectors(detectors_copy);
-					saveDetectors(detectors_copy);
+					deleteDetector(editOverlayIndex);
 				}} onBack={() => {
 					setShowEditOverlay(false);
-					if (lastButtonWasAdd) {
-						let detectors_copy = [...detectors];
-						detectors_copy.splice(editOverlayIndex, 1);
-						setDetectors(detectors_copy);
+					if (lastAction === 'CreateNewDetector' || lastAction === 'AddExistingDetector' || lastAction === 'AddImageSourceToDetector') {
+						deleteDetector(editOverlayIndex);
 					}
 				}} />
 			}
@@ -382,7 +327,6 @@ export default function Home() {
 					for (const idx in detectorIndiciesByGroup[editNotificationsOverlayGroupIndex]) {
 						detectors_copy[detectorIndiciesByGroup[editNotificationsOverlayGroupIndex][idx]].config.notifications = e.config;
 					}
-					setDetectors(detectors_copy);
 					saveDetectors(detectors_copy);
 				}} onBack={() => {
 					setShowEditNotificationsOverlay(false);
