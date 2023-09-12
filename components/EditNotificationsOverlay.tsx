@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import ReactSwitch from "react-switch";
 import { PushStacklightConfigButton } from "./PushStacklightConfigButton";
-import useEscape from "@/hooks/useEscape";
+import useEscape from "@/utils/useEscape";
 import { Dropdown } from "./Dropdown";
 import Link from "next/link";
 
