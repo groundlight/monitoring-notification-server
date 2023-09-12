@@ -51,7 +51,6 @@ type DetType = {
 };
 
 type DetExpType = DetType & {
-    // index: number;
     delete: () => void;
     edit: (det: DetType) => void;
 };
