@@ -1,6 +1,5 @@
 "use client"
 
-import { BASE_SERVER_URL } from "@/utils/config";
 import { useEffect, useState } from "react";
 
 export default function Page() {
@@ -11,15 +10,15 @@ export default function Page() {
 
     const updateState = () => {
         // update json data url
-        fetch(BASE_SERVER_URL + "/api/config-json-pretty").then((res) => res.json()).then((data) => {
+        fetch("/api/config-json-pretty").then((res) => res.json()).then((data) => {
           setJsonDataUrl(`data:application/json,${encodeURIComponent(data)}`);
         });
         // update yaml data url
-        fetch(BASE_SERVER_URL + "/api/config-yaml-pretty").then((res) => res.json()).then((data) => {
+        fetch("/api/config-yaml-pretty").then((res) => res.json()).then((data) => {
           setYamlDataUrl(`data:application/yaml,${encodeURIComponent(data)}`);
         });
         // fetch detector configs
-        fetch(BASE_SERVER_URL + "/api/config").then((res) => res.json()).then((data) => {
+        fetch("/api/config").then((res) => res.json()).then((data) => {
             setApiKeyTemp(data.api_key && data.api_key != "" ? (data.api_key as string).substring(0, 15) + "..." : "");
         });
     }
@@ -30,7 +29,7 @@ export default function Page() {
 
     const saveApiKey = (apiKey: string) => {
         // save api key
-        fetch(BASE_SERVER_URL + "/api/config/api_key", {
+        fetch("/api/config/api_key", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -45,7 +44,7 @@ export default function Page() {
 
     const uploadConfig = (config: string) => {
         // upload config
-        fetch(BASE_SERVER_URL + "/api/set_config", {
+        fetch("/api/set_config", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
