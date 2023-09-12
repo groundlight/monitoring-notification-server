@@ -1,6 +1,5 @@
 "use client"
 
-import { BASE_SERVER_URL } from "@/utils/config";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -12,7 +11,7 @@ export const Nav = () => {
 
 	useEffect(() => {
 		// fetch intro completed
-		fetch(BASE_SERVER_URL + "/api/config").then((res) => res.json()).then((data) => {
+		fetch("/api/config").then((res) => res.json()).then((data) => {
 			setIntroCompleted(!!data.intro_sequence_finished && data.intro_sequence_finished);
 		});
 	}, []);

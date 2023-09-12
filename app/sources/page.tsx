@@ -2,55 +2,17 @@
 
 import { NewCameraOverlay } from "@/components/NewCameraOverlay";
 import { Spinner } from "@/components/Spinner";
-import { BASE_SERVER_URL } from "@/utils/config";
+import { useImageSources } from "@/utils/useImageSources";
 import { ArrowPathIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function VideoPage() {
-    const [cameras, setCameras] = useState<CameraType[] | undefined>(undefined);
-    const [camerasWaiting, setCamerasWaiting] = useState<boolean[]>([]);
+    const { imageSources: cameras, imageSourcesLoaded, refreshImageSource, refetchImageSources: fetchCameras } = useImageSources();
+    const camerasWaiting = imageSourcesLoaded.map(val => !val);
     const [addCameraOverlayOpen, setAddCameraOverlayOpen] = useState<boolean>(false);
 
-    const fetchCameras = () => {
-        fetch(BASE_SERVER_URL + "/api/cameras").then((res) => res.json()).then((data) => {
-            setCameras(data as CameraType[] ? data as CameraType[] : []);
-            if (data as CameraType[]) setCamerasWaiting(new Array((data as CameraType[]).length).fill(false));
-        });
-    }
-
-    useEffect(() => {
-        fetchCameras();
-    }, []);
-
-    const refreshCamera = (idx: number, camera_config: CameraConfigType) => {
-        // set camera waiting
-        const cameras_waiting_copy = camerasWaiting.slice();
-        cameras_waiting_copy[idx] = true;
-        setCamerasWaiting(cameras_waiting_copy);
-        
-        // fetch cameras
-        fetch(BASE_SERVER_URL + "/api/refresh-camera", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(camera_config)
-        }).then((res) => res.json()).then((data) => {
-            if (!cameras) return;
-            const cameras_copy = cameras.slice();
-            if (!(cameras[idx].config === camera_config)) return;
-            cameras_copy[idx].image = data.image;
-            setCameras(cameras_copy);
-            
-            // set camera waiting false
-            const cameras_waiting_copy = camerasWaiting.slice();
-            cameras_waiting_copy[idx] = false;
-            setCamerasWaiting(cameras_waiting_copy);
-        });
-    }
-
     const autodetect = () => {
-        fetch(BASE_SERVER_URL + "/api/cameras/autodetect", {
+        fetch("/api/cameras/autodetect", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -59,7 +21,7 @@ export default function VideoPage() {
     }
 
     const deleteCamera = (idx: number) => {
-        fetch(BASE_SERVER_URL + "/api/cameras/delete", {
+        fetch("/api/cameras/delete", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -79,7 +41,7 @@ export default function VideoPage() {
                             camera.image ?
                                 <div className="relative m-1">
                                     <img src={`data:image/jpeg;base64,${camera.image}`} width={640} height={480} key={index} alt={camera.config.name} className="rounded" />
-                                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded absolute -right-1 -bottom-1" onClick={() => refreshCamera(index, camera.config)}>
+                                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded absolute -right-1 -bottom-1" onClick={() => refreshImageSource(index)}>
                                         <ArrowPathIcon className={`h-4 w-4 ${camerasWaiting[index] && "animate-spin"}`} />
                                     </button>
                                 </div>
