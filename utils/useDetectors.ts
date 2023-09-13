@@ -8,9 +8,6 @@ export const useDetectors = () => {
     const [detectors, setDetectors] = useState<DetType[]>([]);
     const [detectorsByGroup, setDetectorsByGroup] = useState<DetExpType[][]>([]);
 
-    console.log("useDetectors")
-    console.log(detectors)
-
     const saveDetectors = async (detectors_to_save: DetType[]) => {
 		// save detector configs
 		await fetch("/api/config/detectors", {
