@@ -218,8 +218,16 @@ def get_detectors():
     endpoint = config["endpoint"] if "endpoint" in config else None
     # TODO: use this as default gl
     gl = groundlight.Groundlight(api_token=api_key, endpoint=endpoint)
+    results = []
     try:
-        return [json.loads(d.json()) for d in gl.list_detectors().results]
+        i = 1
+        curr_det_list = gl.list_detectors().results
+        while len(curr_det_list) == 10:
+            results.extend(curr_det_list)
+            i += 1
+            curr_det_list = gl.list_detectors(page=i).results
+        results.extend(curr_det_list)
+        return [json.loads(d.json()) for d in results]
     except:
         return []
     
