@@ -31,7 +31,7 @@ export default function VideoPage() {
     }
 
     return (
-        <main className="flex flex-col items-start px-10 py-5 gap-2 relative overflow-scroll max-h-full">
+        <main className="flex flex-col items-start px-10 py-5 gap-2 relative overflow-scroll h-full">
             <h1 className="text-3xl font-semibold">Configure your Image Sources</h1>
             <Spinner hidden={cameras !== undefined} />
             <div className="flex flex-wrap items-stretch gap-8 mx-10 my-5">
