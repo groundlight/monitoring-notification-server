@@ -226,11 +226,6 @@ export default function Home() {
 				detectors.length > 0 && showEditNotificationsOverlay && detectorsByGroup[editNotificationsOverlayGroupIndex][0] &&
 				<EditNotificationsOverlay detector={detectorsByGroup[editNotificationsOverlayGroupIndex][0]} detectors={availableDetectors} index={0} onSave={async (e) => {
 					setShowEditNotificationsOverlay(false);
-					// let detectors_copy = detectors.slice();
-					// for (const idx in detectorIndiciesByGroup[editNotificationsOverlayGroupIndex]) {
-					// 	detectors_copy[detectorIndiciesByGroup[editNotificationsOverlayGroupIndex][idx]].config.notifications = e.config;
-					// }
-					// saveDetectors(detectors_copy);
 					for (const det of detectorsByGroup[editNotificationsOverlayGroupIndex]) {
 						det.edit({ ...det, config: { ...det.config, notifications: e.config } })
 					}

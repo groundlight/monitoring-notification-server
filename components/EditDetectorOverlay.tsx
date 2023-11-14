@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dropdown } from "./Dropdown";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import useEscape from "@/utils/useEscape";
@@ -15,6 +15,17 @@ export const EditDetectorOverlay = ({ detector, detectors, index, startWithNew, 
     const [cycleTime, setCycleTime] = useState<number | undefined>(detector.config.cycle_time);
     const [pin, setPin] = useState<number | undefined>(detector.config.pin);
     const [pinActiveState, setPinActiveState] = useState<number | undefined>(detector.config.pin_active_state);
+
+    useEffect(() => {
+        setNewDetector(startWithNew || false);
+        setName(detector.name);
+        setQuery(detector.query);
+        setId(detector.id);
+        setTriggerType(detector.config.trigger_type);
+        setCycleTime(detector.config.cycle_time);
+        setPin(detector.config.pin);
+        setPinActiveState(detector.config.pin_active_state);
+    }, [detector, startWithNew]);
 
     const isDetectorValid = newDetector ?
         name !== "" && query !== "" && !detectors.map(d => d.name).includes(name) : id !== "" && detectors.map(d => d.name).includes(name);
