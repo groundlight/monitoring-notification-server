@@ -11,7 +11,7 @@
 
 Our Monitoring Notification Server is a server you can deploy anywhere to easily build Groundlight Detectors, and configure them to pull from custom image sources and post notifications.
 
-The Monitoring Notification Server has a simple web interface (depected below) that allows you to configure your detector, and a backend that runs on your device to pull images from your camera and post notifications.
+The Monitoring Notification Server has a simple web interface (depected below) that allows you to configure your detector(s), and a backend that runs on your device to pull images from your camera and post notifications.
 
 ### Intro Page
 
@@ -31,9 +31,11 @@ There are several ways to deploy the code:
 
 ### Running with Docker Compose
 
-1. Use the file [`docker-compose.yml`](./deploy/docker-compose.yml) file. 
+1. Use the file [`docker-compose.yml`](./deploy/docker-compose.yml). 
 
 2. Run `docker-compose up` in the same directory as the `docker-compose.yml` file.
+
+> If you're using Docker Compose v2, replace `docker-compose` with `docker compose`.
 
 ### Running from Docker Compose on 32-bit ARM (armv7)
 
@@ -42,6 +44,8 @@ There are several ways to deploy the code:
 1. Use the slightly different `docker-compose-armv7.yml`.
 
 2. Run `docker-compose -f docker-compose-armv7.yml up`.
+
+> If you're using Docker Compose v2, replace `docker-compose` with `docker compose`.
 
 ### Running with AWS Greengrass
 
