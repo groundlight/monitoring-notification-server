@@ -15,6 +15,8 @@ export const EditDetectorOverlay = ({ detector, detectors, index, startWithNew, 
     const [cycleTime, setCycleTime] = useState<number | undefined>(detector.config.cycle_time);
     const [pin, setPin] = useState<number | undefined>(detector.config.pin);
     const [pinActiveState, setPinActiveState] = useState<number | undefined>(detector.config.pin_active_state);
+    const [motionPercent, setMotionPercent] = useState<number | undefined>(detector.config.motion_percent || 0.3);
+    const [motionThreshold, setMotionThreshold] = useState<number | undefined>(detector.config.motion_threshold || 50);
 
     useEffect(() => {
         setNewDetector(startWithNew || false);
@@ -70,13 +72,26 @@ export const EditDetectorOverlay = ({ detector, detectors, index, startWithNew, 
 
                     <div className="flex gap-2">
                         <div className="font-bold  place-self-center">Trigger Type:</div>
-                        <Dropdown options={["time", "pin", "motion"]} selected={triggerType} setSelected={(e, idx) => setTriggerType(e)} />
+                        <Dropdown options={["time", "motion"]} selected={triggerType} setSelected={(e, idx) => setTriggerType(e)} />
                     </div>
                     {
-                        triggerType === "time" &&
+                        (triggerType === "time" || triggerType === "motion") &&
                         <div className="flex gap-2">
                             <div className="font-bold  place-self-center">Cycle Time:</div>
                             <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="number" placeholder="Cycle Time" value={cycleTime} onChange={(e) => setCycleTime(parseInt(e.target.value))} min={0} />
+                        </div>
+                    }
+                    {
+                        triggerType === "motion" &&
+                        <div className="flex flex-col gap-2">
+                            <div className="flex gap-2">
+                                <div className="font-bold  place-self-center">Motion Percent:</div>
+                                <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="number" placeholder="Motion Percent" value={motionPercent} onChange={(e) => setMotionPercent(parseFloat(e.target.value))} min={0} />
+                            </div>
+                            <div className="flex gap-2">
+                                <div className="font-bold  place-self-center">Motion Threshold:</div>
+                                <input className="border-2 border-gray-300 rounded-md p-2  w-full" type="number" placeholder="Motion Threshold" value={motionThreshold} onChange={(e) => setMotionThreshold(parseInt(e.target.value))} min={0} />
+                            </div>
                         </div>
                     }
                     {
@@ -109,6 +124,8 @@ export const EditDetectorOverlay = ({ detector, detectors, index, startWithNew, 
                                 pin,
                                 pin_active_state: pinActiveState,
                                 notifications: detector.config.notifications,
+                                motion_percent: motionPercent,
+                                motion_threshold: motionThreshold,
                             }
                         },
                         index: index,

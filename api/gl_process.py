@@ -7,6 +7,7 @@ import groundlight
 import multiprocessing
 from api.notifications import send_notifications
 import logging
+import framegrab
 
 def frame_to_base64(frame) -> str:
     #  encode image as jpeg
@@ -47,9 +48,14 @@ def run_process(idx: int, logger: logging.Logger, detector: dict, api_key: str, 
     delay = lambda: time.sleep(poll_delay)
     cycle_time = 30
 
+    motion = None
+
     if trigger_type == "motion":
         # TODO: implement
-        raise ValueError(f"Trigger type [{trigger_type}] not yet supported.")
+        if detector["config"]["cycle_time"] < poll_delay:
+            poll_delay = detector["config"]["cycle_time"]
+        cycle_time = detector["config"]["cycle_time"]
+        motion = framegrab.motion.MotionDetector(detector["config"]["motion_percent"], detector["config"]["motion_threshold"])
     elif trigger_type == "time":
         if detector["config"]["cycle_time"] < poll_delay:
             poll_delay = detector["config"]["cycle_time"]
@@ -85,6 +91,10 @@ def run_process(idx: int, logger: logging.Logger, detector: dict, api_key: str, 
 
             if frame is None:
                 logger.warn("Frame recieved as None.")
+                continue
+
+            if motion is not None and not motion.motion_detected(frame):
+                time.sleep(cycle_time)
                 continue
 
             # send to groundlight
