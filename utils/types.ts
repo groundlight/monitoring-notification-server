@@ -41,6 +41,8 @@ type DetConfType = {
 	pin?: number;
 	pin_active_state?: PinState;
 	notifications?: NotificationOptionsType;
+	motion_percent?: number;
+	motion_threshold?: number;
 };
 
 type DetType = {

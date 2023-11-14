@@ -101,7 +101,7 @@ export default function Home() {
 							<a
 								href={"https://app.groundlight.ai/reef/detectors/" + group[0].id}
 								target="_blank"
-								className="text-lg hover:bg-gray-200 hover:text-gray-700 rounded-md px-4 py-1 mr-auto"
+								className="text-lg hover:bg-gray-200 hover:text-gray-700 rounded-md px-4 py-1 mr-auto flex place-items-center justify-center"
 							>
 								{group[0].name}
 								<ArrowUpRightIcon className="ml-2 w-5 h-5 inline-block" />
@@ -153,8 +153,12 @@ export default function Home() {
 										<div className={` ${detector.config.trigger_type != "pin" && "hidden"}`}>{detector.config.pin}</div>
 										<div className={` ${detector.config.trigger_type != "pin" && "hidden"}`}>Pin Active State:</div>
 										<div className={` ${detector.config.trigger_type != "pin" && "hidden"}`}>{detector.config.pin_active_state == 1 ? "HIGH" : "LOW"}</div>
-										<div className={` ${detector.config.trigger_type != "time" && "hidden"}`}>{"Cycle Time:"}</div>
-										<div className={` ${detector.config.trigger_type != "time" && "hidden"}`}>{detector.config.cycle_time + "s"}</div>
+										<div className={` ${(detector.config.trigger_type != "time" && detector.config.trigger_type != "motion") && "hidden"}`}>{"Cycle Time:"}</div>
+										<div className={` ${(detector.config.trigger_type != "time" && detector.config.trigger_type != "motion") && "hidden"}`}>{detector.config.cycle_time + "s"}</div>
+										<div className={` ${detector.config.trigger_type != "motion" && "hidden"}`}>{"Frame Percent:"}</div>
+										<div className={` ${detector.config.trigger_type != "motion" && "hidden"}`}>{(detector.config.cycle_time ? detector.config.cycle_time * 10 : 100) + "%"}</div>
+										<div className={` ${detector.config.trigger_type != "motion" && "hidden"}`}>{"Threshold:"}</div>
+										<div className={` ${detector.config.trigger_type != "motion" && "hidden"}`}>{detector.config.cycle_time}</div>
 									</div>
 								</div>
 								<div className="w-full h-full flex flex-col place-items-center justify-center gap-4">
