@@ -14,19 +14,19 @@ jobs:
           - target: frontend
             platforms: linux/amd64,linux/arm64
             dockerfile: ./frontend.Dockerfile
-            tag: docker.io/groundlight/monitoring-notification-server-frontend:latest
+            tag: "groundlight/monitoring-notification-server-frontend:"
           - target: frontend-armv7
             platforms: linux/arm/v7
             dockerfile: ./frontend-armv7.Dockerfile
-            tag: docker.io/groundlight/monitoring-notification-server-frontend:armv7-latest
+            tag: groundlight/monitoring-notification-server-frontend:armv7-
           - target: backend
             platforms: linux/amd64,linux/arm64
             dockerfile: ./backend.Dockerfile
-            tag: docker.io/groundlight/monitoring-notification-server-backend:latest
+            tag: "groundlight/monitoring-notification-server-backend:"
           - target: backend-armv7
             platforms: linux/arm/v7
             dockerfile: ./backend-armv7.Dockerfile
-            tag: docker.io/groundlight/monitoring-notification-server-backend:armv7-latest
+            tag: groundlight/monitoring-notification-server-backend:armv7-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -41,14 +41,51 @@ jobs:
           password: ${{ secrets.DOCKER_REGISTRY_TOKEN }}
           registry: docker.io
 
-      - name: Build Image
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
+
+      - name: generate the docker tag and image name
+        id: docker-tag-name
+        env:
+          registry: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          export TAGNAME=$(./deploy/git-tag-name-version.sh)
+          echo "TAGNAME=${TAGNAME}" >> $GITHUB_OUTPUT
+          echo "TAGNAME=${TAGNAME}"
+          echo "DOCKER_IMAGE=${registry}/${{ matrix.tag }}${TAGNAME}" >> $GITHUB_OUTPUT
+          echo "DOCKER_IMAGE=${registry}/${{ matrix.tag }}${TAGNAME}"
+
+      - name: Build Image and Push to DockerHub
         uses: docker/build-push-action@v3
         with:
           context: .
-          tags: ${{ matrix.tag }}
+          tags: ${{ matrix.tag }}${{ steps.docker-tag-name.outputs.TAGNAME }}
           platforms: ${{ matrix.platforms }}
           file: ${{ matrix.dockerfile }}
           # push if the target is main
           push: ${{ github.ref == 'refs/heads/main' }}
           cache-from: type=gha,scope=${{ matrix.target }}
           cache-to: type=gha,scope=${{ matrix.target }},mode=max
+        
+      - name: Push image to Amazon ECR
+        run: |
+          for cnt in {1..10}; do
+            # we repeat because this is bizarrely flaky
+            docker push ${{ steps.docker-tag-name.outputs.DOCKER_IMAGE }} && exit 0
+            # if it succeeded, we didn't get here.
+            echo "Got error code $? on push attempt $cnt"
+            sleep ${cnt}
+            aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 723181461334.dkr.ecr.us-west-2.amazonaws.com
+          done
+          echo "failed to push to ECR too many times. Generally this is fixed by just retrying."
+          exit 1
