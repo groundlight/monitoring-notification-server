@@ -12,7 +12,7 @@ jobs:
         target: [frontend, frontend-armv7, backend, backend-armv7]
         include:
           - target: frontend
-            platforms: linux/amd64,linux/arm64
+            platforms: linux/amd64,linux/arm64,linux/arm/v8
             dockerfile: ./frontend.Dockerfile
             tag: docker.io/groundlight/monitoring-notification-server-frontend:latest
           - target: frontend-armv7
@@ -20,7 +20,7 @@ jobs:
             dockerfile: ./frontend-armv7.Dockerfile
             tag: docker.io/groundlight/monitoring-notification-server-frontend:armv7-latest
           - target: backend
-            platforms: linux/amd64,linux/arm64
+            platforms: linux/amd64,linux/arm64,linux/arm/v8
             dockerfile: ./backend.Dockerfile
             tag: docker.io/groundlight/monitoring-notification-server-backend:latest
           - target: backend-armv7
