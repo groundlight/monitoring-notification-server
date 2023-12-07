@@ -33,9 +33,13 @@ There are several ways to deploy the code:
 
 1. Use the file [`docker-compose.yml`](./deploy/docker-compose.yml). 
 
-2. Run `docker-compose up` in the same directory as the `docker-compose.yml` file.  This will build the docker images from source and then run them.  If you'd rather use pre-built images, you can do this with `docker-compose up -f docker-compose-prebuilt.yml` but pre-built images aren't currently available on all platforms, and may lag behind the latest source code here.
+2. Run `docker-compose up` in the same directory as the `docker-compose.yml` file.  This will use pre-built images from dockerhub.  The images are automatically built from this repo.
 
-> If you're using Docker Compose v2, replace `docker-compose` with `docker compose`.
+**Troubleshooting**
+
+If you're using Docker Compose v2, replace `docker-compose` with `docker compose`.
+
+If the pre-built images don't work for you, you can try `docker-compose up -f docker-compose-localbuild.yml` to rebuild locally from source.
 
 ### Running from Docker Compose on 32-bit ARM (armv7)
 
