@@ -16,5 +16,6 @@ services:
       - /dev/video2:/dev/video2
       - /dev/video3:/dev/video3
     privileged: true
-    volumes:
-      - /dev/bus/usb:/dev/bus/usb
+    # Seems balena doesn't like volume mounting.  
+    #volumes:
+      #- /dev/bus/usb:/dev/bus/usb
