@@ -1,13 +1,13 @@
 version: "2"
 services:
-  HFE:
-    build: ./HFE
+  hubfrontend:
+    build: ./hubfrontend
     ports:
       - "80:3000"
     depends_on:
-      - BECS
-  BECS:
-    build: ./BECS
+      - backendconfigserver
+  backendconfigserver:
+    build: ./backendconfigserver
     ports:
       - "8000:8000"
     devices:

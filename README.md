@@ -87,6 +87,6 @@ We welcome pull requests!
 
 ### Organization of source code
 
-- `HFE` is the "hub frontend".  This is a Typescript / React app that serves as the frontend for the system. 
-- `BECS` is the "backend config server".  This is an HTTP server which serves the configuration for the detectors.
+- `hubfrontend` is a Typescript / React app that serves as the frontend for the system. 
+- `backendconfigserver` is an HTTP server which serves the configuration for the detectors.
 - `deploy` has code for deploying the system in various environments
