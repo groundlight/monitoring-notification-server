@@ -2,7 +2,7 @@ services:
   frontend:
     image: docker.io/groundlight/monitoring-notification-server-frontend:latest
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
       - backend
   backend:
