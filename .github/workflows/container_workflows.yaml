@@ -1,11 +1,14 @@
 # This is a workflow to build images
 name: Build Docker Images
 
-on: [push]
+on:
+  push:
+    branches:
+      - release
 
 jobs:
+  #TODO: redo the tests with the new arrangement
   build:
-    #TODO: this is all busted and out of date.
     name: Build Docker Image
     runs-on: ubuntu-latest
     strategy:

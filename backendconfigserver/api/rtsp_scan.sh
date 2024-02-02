@@ -11,7 +11,7 @@ fi
 install_dependencies() {
     echo "Installing dependencies..."
     sudo apt update
-    sudo apt install -y nmap net-tools
+    sudo apt install -y nmap net-tools iproute2
 }
 
 # Function to find subnets
@@ -79,7 +79,11 @@ scan_subnet() {
 
 # Main execution
 main() {
-    #install_dependencies
+    # check if `ip` and `nmap` are available
+    if ! command -v ip &> /dev/null || ! command -v nmap &> /dev/null; then
+        echo "Missing dependencies.  Attempting to install them"
+        install_dependencies
+    fi
     find_subnets | while read -r subnet; do
         scan_subnet "$subnet"
     done
