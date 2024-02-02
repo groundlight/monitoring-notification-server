@@ -1,0 +1,21 @@
+version: "2"
+services:
+  hubfrontend:
+    build: ./hubfrontend
+    ports:
+      - "80:3000"
+    depends_on:
+      - backendconfigserver
+  backendconfigserver:
+    build: ./backendconfigserver
+    ports:
+      - "8000:8000"
+    devices:
+      - /dev/video0:/dev/video0
+      - /dev/video1:/dev/video1
+      - /dev/video2:/dev/video2
+      - /dev/video3:/dev/video3
+    privileged: true
+    # Seems balena doesn't like volume mounting.  
+    #volumes:
+      #- /dev/bus/usb:/dev/bus/usb

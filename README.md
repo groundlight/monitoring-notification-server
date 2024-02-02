@@ -87,6 +87,6 @@ We welcome pull requests!
 
 ### Organization of source code
 
-- `app` is the frontend TypeScript / React application
-- `api` is the backend Python / FastApi application
-- `deploy` has code for deploying the system
+- `hubfrontend` is a Typescript / React app that serves as the frontend for the system. 
+- `backendconfigserver` is an HTTP server which serves the configuration for the detectors.
+- `deploy` has code for deploying the system in various environments

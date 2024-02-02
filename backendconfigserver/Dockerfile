@@ -1,11 +1,16 @@
-FROM python:3.9-slim-bookworm
+FROM python:3.11-slim-bookworm
+
+RUN apt-get update && \
+    apt-get install -y \
+        sudo && \
+    apt-get clean
 
 WORKDIR /app
 
 COPY ./requirements.txt /app/requirements.txt
 
 RUN pip3 install --no-cache-dir --upgrade -r /app/requirements.txt
-RUN pip3 install opencv-python-headless==4.8.0.74
+RUN pip3 install opencv-python-headless>=4.8
 
 RUN pip install --index-url=https://www.piwheels.org/simple --no-cache-dir -r /app/requirements.txt
 RUN pip install --no-deps groundlight
